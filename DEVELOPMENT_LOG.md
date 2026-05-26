@@ -247,3 +247,46 @@ function normalizeFen(fen: string): string {
 - 增加网格线宽度（从 0.5px 到 1px）
 - 添加微发光效果 `filter="url(#gold-glow)"`
 - 在外围增加金色边框 `stroke-width="2.5"`
+
+---
+
+## CI/CD
+
+### 20. Clippy lint avalanche after Rust toolchain update
+
+**症状**: CI 上 `cargo clippy -D warnings` 一次性报 13 个错误
+
+**原因**: 本地 Rust 版本较旧（1.85），CI 使用更新版本（1.95+）引入了新的 clippy lint：
+- `empty_line_after_doc_comments` — `///` 和 `use` 之间不能有空行
+- `needless_range_loop` — `for row in 0..ROWS { board[row] }` 建议用迭代器
+- `manual_range_contains` — `if col < 3 || col > 5` 建议用 `(3..=5).contains(&col)`
+- `manual_flatten` — `for cell in iter { if let Some(p) = cell }` 建议用 `.flatten()`
+- `ptr_arg` — `fn foo(moves: &mut Vec<Move>)` 建议用 `&mut [Move]`
+- `useless_conversion` — `vec![].into()` 不需要 `.into()`
+
+**解决**:
+- 文档注释 `///` → `//!`（模块级 inner doc comment）或删除空行
+- 循环改为 `board.iter().enumerate()` / `.flatten()` 风格
+- 范围判断改为 `(n..=m).contains(&x)`
+- 函数签名改为 `&mut [Move]`
+- 删除 `vec![].into()` 多余的 `.into()`
+
+### 21. ESLint React Compiler 拒绝 useCallback 空 deps
+
+**症状**: CI 上 ESLint 报 `Compilation Skipped: Existing memoization could not be preserved`
+
+**原因**: React 19 内置编译器无法验证 `useCallback(() => {...}, [])` 的 deps 完整性。`analyzeFen` 只调用 `set*` 稳定函数，理论上 deps 正确，但编译器无法确认。
+
+**解决**: 移除 `useCallback` 包装，采用普通函数。React 编译器会自动 memoize。
+
+### 22. ESLint: refs 不能在 render 期间赋值
+
+**症状**: `error: Error: Cannot access refs during render`
+
+**原因**: 在组件体（render 阶段）直接赋值 `fenRef.current = fen`，违反 React 19 规则——ref 只能在事件处理器或 effect 中修改。
+
+**解决**: 将 ref 同步移到 `useEffect` 中：
+```typescript
+useEffect(() => { fenRef.current = fen; }, [fen]);
+useEffect(() => { boardRef.current = board; }, [board]);
+```
