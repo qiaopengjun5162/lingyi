@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/lingyi-protocol", "crates/lingyi-core", "crates/lingyi-agent"]
+resolver = "2"
