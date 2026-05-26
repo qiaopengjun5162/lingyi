@@ -59,11 +59,11 @@ pub fn parse_fen(fen: &str) -> Option<(BoardArray, Side)> {
 /// 棋盘序列化为 FEN。
 pub fn board_to_fen(board: &BoardArray, side: Side) -> String {
     let mut parts = Vec::with_capacity(ROWS);
-    for row in 0..ROWS {
+    for row_data in board.iter() {
         let mut fen_row = String::new();
-        let mut empty = 0;
-        for col in 0..COLS {
-            if let Some(piece) = board[row][col] {
+        let mut empty = 0u8;
+        for cell in row_data.iter() {
+            if let Some(piece) = cell {
                 if empty > 0 {
                     fen_row.push_str(&empty.to_string());
                     empty = 0;
@@ -93,11 +93,11 @@ pub fn in_bounds(row: i8, col: i8) -> bool {
 
 /// 是否在九宫格内。
 pub fn in_palace(row: usize, col: usize, side: Side) -> bool {
-    if col < 3 || col > 5 {
+    if !(3..=5).contains(&col) {
         return false;
     }
     match side {
-        Side::Red => row >= 7 && row <= 9,
+        Side::Red => (7..=9).contains(&row),
         Side::Black => row <= 2,
     }
 }

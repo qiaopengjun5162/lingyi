@@ -7,7 +7,6 @@
 /// - 入门: depth=2 (~6²=36 节点)
 /// - 中级: depth=4 (~6⁴=1.3K 节点)
 /// - 高级: depth=6 (~6⁶=47K 节点)
-
 use crate::board::*;
 use crate::game;
 use crate::moves::*;
@@ -27,7 +26,7 @@ fn victim_value(pt: PieceType) -> f64 {
 }
 
 /// 走法排序：吃子走法优先（MVV-LVA: 先吃价值高的子，先用价值低的子吃）
-fn order_moves(moves: &mut Vec<Move>, board: &BoardArray) {
+fn order_moves(moves: &mut [Move], board: &BoardArray) {
     moves.sort_by(|a, b| {
         let a_victim = board[a.to_row][a.to_col].map(|p| victim_value(p.piece_type)).unwrap_or(0.0);
         let b_victim = board[b.to_row][b.to_col].map(|p| victim_value(p.piece_type)).unwrap_or(0.0);

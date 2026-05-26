@@ -1,4 +1,4 @@
-/// 游戏逻辑：走棋、将军检测、合法性过滤。
+//! 游戏逻辑：走棋、将军检测、合法性过滤。
 
 use crate::board::*;
 use crate::moves::*;
@@ -6,9 +6,9 @@ use crate::piece::*;
 
 /// 找到某方将/帅的位置。
 pub fn find_king(board: &BoardArray, side: Side) -> Option<(usize, usize)> {
-    for row in 0..ROWS {
-        for col in 0..COLS {
-            if let Some(p) = board[row][col] {
+    for (row, row_data) in board.iter().enumerate() {
+        for (col, cell) in row_data.iter().enumerate() {
+            if let Some(p) = cell {
                 if p.piece_type == PieceType::King && p.side == side {
                     return Some((row, col));
                 }
@@ -27,20 +27,15 @@ pub fn kings_facing(board: &BoardArray) -> bool {
     }
     let min_r = r1.min(r2) + 1;
     let max_r = r1.max(r2);
-    for r in min_r..max_r {
-        if board[r][c1].is_some() {
-            return false;
-        }
-    }
-    true
+    !board[min_r..max_r].iter().any(|r| r[c1].is_some())
 }
 
 /// 某方是否被将军。
 pub fn in_check(board: &BoardArray, side: Side) -> bool {
     let opp = side.opponent();
-    for row in 0..ROWS {
-        for col in 0..COLS {
-            if let Some(p) = board[row][col] {
+    for (row, row_data) in board.iter().enumerate() {
+        for (col, cell) in row_data.iter().enumerate() {
+            if let Some(p) = cell {
                 if p.side == opp {
                     for m in pseudo_legal_moves(board, row, col) {
                         if board[m.to_row][m.to_col]
@@ -104,15 +99,13 @@ pub fn piece_value(pt: PieceType) -> f64 {
 /// 用作 AI 搜索的评估函数，也通过 WASM 暴露给前端。
 pub fn evaluate_board(board: &BoardArray) -> f64 {
     let mut score = 0.0;
-    for row in 0..ROWS {
-        for col in 0..COLS {
-            if let Some(p) = board[row][col] {
-                let v = piece_value(p.piece_type);
-                score += match p.side {
-                    Side::Red => v,
-                    Side::Black => -v,
-                };
-            }
+    for row_data in board.iter() {
+        for p in row_data.iter().flatten() {
+            let v = piece_value(p.piece_type);
+            score += match p.side {
+                Side::Red => v,
+                Side::Black => -v,
+            };
         }
     }
     score

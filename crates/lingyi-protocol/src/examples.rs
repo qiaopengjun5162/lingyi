@@ -151,7 +151,7 @@ pub fn classic_blunder_context() -> AnalysisContext {
         user_profile: Some(UserProfile {
             recent_losses: 5,
             known_weaknesses: vec!["开局不熟".into(), "随手棋多".into()],
-            known_strengths: vec![].into(),
+            known_strengths: vec![],
             rating: Some(1200),
         }),
         coaching_style: CoachingStyle::Strict,

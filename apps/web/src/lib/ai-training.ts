@@ -1,6 +1,6 @@
 'use client';
 
-import type { Move, GameMode, AIStats } from './types';
+import type { GameMode, AIStats } from './types';
 
 export interface StepRecord {
   fen: string;

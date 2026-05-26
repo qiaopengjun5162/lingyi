@@ -17,7 +17,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import type { BoardState, Move, GameMode, AIStats, PieceType } from '@/lib/types';
+import type { BoardState, Move, GameMode, AIStats } from '@/lib/types';
 import { START_FEN } from '@/lib/types';
 import {
   createGame, addStep, finishGame, calculateStats,
@@ -31,7 +31,7 @@ import {
 import { moveToNotation } from '@/lib/notation';
 import {
   playMove, playCapture, playCheck, playCheckmate, playStalemate,
-  playSelect, speakNotation,
+  speakNotation,
   setSoundEnabled, setSpeechEnabled,
 } from '@/lib/sound';
 import { lookup } from '@/lib/opening-book';
@@ -45,7 +45,6 @@ const BASE_SVG_W = BOARD_W + BASE_MARGIN * 2;
 const BASE_SVG_H = BOARD_H + BASE_MARGIN * 2;
 // 红木色系
 const ROSE_WOOD = '#5c2e16';
-const ROSE_WOOD_LIGHT = '#8b4513';
 const GOLD_LINE = '#c9a84c';
 const GOLD_GLOW = 'rgba(201,168,76,0.3)';
 
@@ -255,31 +254,15 @@ export default function Home() {
   // 用 ref 存最新 fen/board，避免 AI 异步回调中拿到过期数据
   const fenRef = useRef(fen);
   const boardRef = useRef(board);
-  fenRef.current = fen;
-  boardRef.current = board;
+  useEffect(() => { fenRef.current = fen; }, [fen]);
+  useEffect(() => { boardRef.current = board; }, [board]);
 
   // 音效开关同步到 sound 模块
   useEffect(() => { setSoundEnabled(soundOn); }, [soundOn]);
   useEffect(() => { setSpeechEnabled(speechOn); }, [speechOn]);
 
-  // 页面加载时初始化 WASM 引擎
-  useEffect(() => {
-    initWasm()
-      .then(() => {
-        setStatus('ready');
-        analyzeFen(START_FEN);
-        setAiStats(calculateStats());
-        setWeaknesses(summarizeWeaknesses());
-      })
-      .catch((e: Error) => {
-        setStatus('error');
-        setError(e.message);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   /** 分析 FEN 局面 */
-  const analyzeFen = useCallback((f: string) => {
+  const analyzeFen = (f: string) => {
     setFen(f);
     setSelected(null);
     try {
@@ -308,6 +291,22 @@ export default function Home() {
     } catch (e: unknown) {
       setError(String(e));
     }
+  };
+
+  // 页面加载时初始化 WASM 引擎
+  useEffect(() => {
+    initWasm()
+      .then(() => {
+        setStatus('ready');
+        analyzeFen(START_FEN);
+        setAiStats(calculateStats());
+        setWeaknesses(summarizeWeaknesses());
+      })
+      .catch((e: Error) => {
+        setStatus('error');
+        setError(e.message);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** 触发 AI 走棋（在 PVE 模式下人类走完后调用） */
