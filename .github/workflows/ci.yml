@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy
+      - run: cargo test -p lingyi-core
+      - run: cargo clippy -p lingyi-core -- -D warnings
+      - run: cargo build -p lingyi-core --features wasm
+
+  wasm:
+    name: WASM Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - run: wasm-pack build crates/lingyi-core --target web -- --features wasm
+      - run: cp crates/lingyi-core/pkg/lingyi_core_bg.wasm apps/web/public/wasm/
+      - run: cp crates/lingyi-core/pkg/lingyi_core.js apps/web/public/wasm/
+      - run: cp crates/lingyi-core/pkg/lingyi_core.d.ts apps/web/public/wasm/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: apps/web/public/wasm/
+
+  web:
+    name: Next.js
+    needs: wasm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm
+          path: apps/web/public/wasm/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
