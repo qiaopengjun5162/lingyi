@@ -182,6 +182,15 @@ evaluate(fen: string) → number
 - 无用代码彻底删除，不留 re-export、`_` 前缀变量、`// removed` 注释
 - 默认选择最简单可用的方案
 
+## GitHub
+
+- 仓库：`https://github.com/qiaopengjun5162/lingyi`
+- 默认分支：`main`
+- README: [README.md](./README.md)（英文）/ [README_CN.md](./README_CN.md)（中文）
+- 贡献指南：[CONTRIBUTING.md](./CONTRIBUTING.md)
+- CI/CD: [.github/workflows/ci.yml](./.github/workflows/ci.yml)
+- 开发日志：[DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md)（记录了 19 个已解决问题）
+
 ## 运行方式
 
 ```bash
