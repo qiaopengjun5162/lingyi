@@ -19,39 +19,39 @@ export function PieceToken({
   const isRed = side === 'red';
   const char = PIECE_CHAR[piece_type]?.[side] ?? '?';
 
-  // Warm jade/ivory body — no neon, no glow
-  const bg = 'radial-gradient(circle at 38% 32%, rgba(248,240,220,0.96), rgba(225,208,180,0.92) 50%, rgba(200,185,160,0.88) 100%)';
-  const textColor = isRed ? '#c23b22' : '#1a1a1a';
-  const borderColor = selected
-    ? (isRed ? 'rgba(194,59,34,0.55)' : 'rgba(26,26,26,0.45)')
-    : 'rgba(180,150,110,0.35)';
-  const outerShadow = selected
-    ? '0 0 0 2px rgba(194,59,34,0.12), 0 2px 8px rgba(0,0,0,0.25)'
-    : '0 1px 3px rgba(0,0,0,0.18), 0 0 0 1px rgba(180,150,110,0.15)';
-  const selectedRing = selected ? '2px solid rgba(194,59,34,0.25)' : 'none';
+  const textColor = isRed ? '#c23b22' : '#1a0f00';
+  const bg = 'radial-gradient(circle at 35% 28%, #faf3e0 0%, #eddcb0 40%, #d8c08a 75%, #c4a870 100%)';
+  const ringColor = selected
+    ? (isRed ? 'rgba(194,59,34,0.75)' : 'rgba(26,26,26,0.65)')
+    : 'rgba(70,38,10,0.72)';
+  const shadow = [
+    `0 0 0 2.5px ${ringColor}`,
+    '0 0 0 4.5px rgba(210,175,110,0.38)',
+    '0 4px 10px rgba(0,0,0,0.48)',
+    'inset 0 1.5px 4px rgba(255,255,255,0.7)',
+    'inset 0 -2px 3px rgba(0,0,0,0.18)',
+  ].join(',');
 
   return (
     <div
-      className="relative transition-all duration-200 ease-out hover:scale-105"
+      className="relative transition-all duration-150 ease-out hover:scale-105"
       style={{
         width: size, height: size,
         borderRadius: '50%',
         background: bg,
-        border: `1.5px solid ${borderColor}`,
-        outline: selectedRing,
-        outlineOffset: 2,
+        border: '1.5px solid rgba(70,38,10,0.45)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: outerShadow,
+        boxShadow: shadow,
         cursor: 'pointer',
         userSelect: 'none',
       }}>
       <span style={{
-        fontFamily: "'Noto Serif SC', 'KaiTi', serif",
-        fontSize: size * 0.52,
-        fontWeight: 800,
+        fontFamily: "'Noto Serif SC', 'KaiTi', 'STKaiti', serif",
+        fontSize: size * 0.54,
+        fontWeight: 900,
         lineHeight: 1,
         color: textColor,
-        textShadow: '0 1px 1px rgba(0,0,0,0.12)',
+        textShadow: isRed ? '0 1px 2px rgba(120,20,10,0.25)' : '0 1px 2px rgba(0,0,0,0.28)',
       }}>
         {char}
       </span>

@@ -29,16 +29,18 @@ export default function Home() {
     <main className="min-h-screen relative overflow-hidden"
       style={{
         background: [
-          /* 竖向木纹主纹理 — 模拟胡桃木年轮纹 */
-          'repeating-linear-gradient(0deg, transparent 0px, rgba(255,210,130,0.045) 1px, transparent 2px, rgba(0,0,0,0.03) 5px, transparent 7px, rgba(255,200,100,0.025) 11px, transparent 14px)',
-          /* 竖向副纹 — 轻微偏角增加自然感 */
-          'repeating-linear-gradient(2deg, transparent 0px, rgba(0,0,0,0.02) 3px, transparent 7px, rgba(255,190,80,0.03) 13px, transparent 18px)',
-          /* 四角暗角 — 聚焦棋盘区域 */
-          'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.45) 100%)',
-          /* 顶部光源 — 模拟头顶灯光打在木桌上 */
-          'radial-gradient(ellipse 60% 35% at 50% 0%, rgba(210,170,100,0.22) 0%, transparent 70%)',
-          /* 主木色渐变 — 深胡桃木，边缘更深 */
-          'linear-gradient(160deg, #7a5535 0%, #5c3e28 25%, #4a3020 55%, #3a2418 80%, #2a1a10 100%)',
+          /* 不规则木纹高光区 — 模拟木料自然年轮变化 */
+          'radial-gradient(ellipse 25% 90% at 18% 40%, rgba(255,210,130,0.07) 0%, transparent 70%)',
+          'radial-gradient(ellipse 20% 75% at 75% 60%, rgba(255,200,100,0.05) 0%, transparent 65%)',
+          'radial-gradient(ellipse 15% 50% at 45% 25%, rgba(0,0,0,0.05) 0%, transparent 60%)',
+          /* 细木纹 — 间距不均匀增加自然感 */
+          'repeating-linear-gradient(0deg, transparent 0px, rgba(0,0,0,0.022) 1px, transparent 3px, rgba(255,200,100,0.018) 7px, transparent 9px, transparent 15px)',
+          /* 四角暗角 — 聚焦中心 */
+          'radial-gradient(ellipse 88% 88% at 50% 50%, transparent 42%, rgba(0,0,0,0.5) 100%)',
+          /* 顶部自然光 */
+          'radial-gradient(ellipse 55% 30% at 50% 0%, rgba(210,170,100,0.2) 0%, transparent 70%)',
+          /* 主木色 — 深胡桃木 */
+          'linear-gradient(175deg, #7a5535 0%, #5c3e28 28%, #4a3020 58%, #3a2418 82%, #281808 100%)',
         ].join(','),
       }}>
       {/* 竖排书法卷轴 — left margin */}
