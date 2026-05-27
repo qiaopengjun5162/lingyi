@@ -1,5 +1,67 @@
 # 灵弈开发问题记录
 
+## 模块化重构 (2026-05-26)
+
+### 26. 前端代码模块化拆分
+
+**症状**: `page.tsx` 膨胀到 700+ 行，逻辑层与渲染层混在一起，难以测试和维护。
+
+**原因**: 初始 MVP 阶段快速迭代，所有组件、状态、事件处理、WASM 调用都写在一个文件中。
+
+**解决**: 按职责拆分为三个层次：
+- **`lib/board-constants.ts`** — 常量集中管理（颜色、尺寸、木纹路径、预设局面、难度等级）
+- **`components/`** — 纯渲染组件（GridSVG、PieceToken、BoardView），无业务逻辑
+- **`hooks/useGame.ts`** — 游戏状态管理 hook，封装所有 state、useEffect、WASM 调用、AI 逻辑
+- **`page.tsx`** — 薄组装层（重建为 140 行），仅负责读取 hook 返回值并分发到组件
+
+组件接口：
+- `GridSVG({ cell, margin })` — SVG 棋盘网格（无状态纯渲染）
+- `PieceToken({ piece_type, side, selected, cell })` — 棋子 3D 渲染
+- `BoardView({ board, selected, moveTargets, onCellClick, ... })` — 棋盘容器（网格 + 棋子 + 走法提示 + 事件）
+- `useGame()` → `{ fen, board, selected, moveTargets, analyzeFen, handleCellClick, ... }` — 所有游戏逻辑
+- `Header({ status })` — 标题 + 引擎状态指示
+- `ModeControls({ gameMode, difficulty, onModeChange, ... })` — 模式/难度/音效控制
+
+验证：`pnpm build` 通过、`pnpm lint` 0 errors、`cargo nextest run` 12/12 pass。
+
+## 视觉升级 (2026-05-26)
+
+### 23. 棋盘木纹由单色改为 SVG 图案
+
+**症状**: 棋盘背景是纯色 `#5c2e16`，缺乏红木实木纹理，视觉层次单薄。
+
+**原因**: 初始实现只用了单色 rect + 一个不起作用的 `fill="linear-gradient(...)"`（SVG 不支持 rect 上直接写 inline gradient，必须用 `url(#id)` 引用 defs 中定义的渐变）。
+
+**解决**:
+- 创建 SVG `<pattern id="wood-grain">`，内嵌 25 条有机波浪路径模拟木纹走向
+- 分两层：深色粗纹（`#4a2512`）模拟年轮、浅色细纹（`#6b3820`）模拟木纤维
+- 使用 Q 二次贝塞尔 + T 平滑贝塞尔路径制造自然波动
+- 添加 `<radialGradient>` 暗角 (vignette) 模拟环境光遮蔽
+- 添加 `<linearGradient>` 定向光照模拟右上至左下光
+
+### 24. 棋子材质升级 — 3D 圆柱 + 雕刻汉字
+
+**症状**: 棋子使用 2-stop 径向渐变，汉字只有简单 glow 效果，缺乏实物质感。
+
+**原因**: 初始实现追求功能优先，视觉上仅做了基础材质区分。
+
+**解决**:
+- 背景改为 6-stop `radial-gradient(circle at 32% 25%, ...)` — 高光点偏移制造 3D 圆柱曲率
+- 投影改为 3 层：环境阴影（8px 模糊，模拟飘浮感）+ 接触阴影（3px，模拟触板感）+ 内斜面（inset，模拟物理厚度）
+- 汉字改用雕刻效果 text-shadow：顶部取光阴影 + 底部暗影陷落
+- 选中态提升对比度：金色发光环 + 更深的阴影
+
+### 25. npm → pnpm 迁移 + cargo nextest
+
+**原因**: pnpm 更快的安装速度、严格的依赖隔离、更节省磁盘空间。
+
+**变更**:
+- 删除 `package-lock.json`，生成 `pnpm-lock.yaml`
+- CI 加入 `pnpm/action-setup@v4` 步骤
+- `justfile` 中 `npx eslint` → `pnpm lint`，`npx next build` → `pnpm build`
+- `pnpm approve-builds` 处理了 sharp/msw/unrs-resolver 构建脚本
+- 补充：`cargo test` → `cargo nextest run`（更快、更清晰的测试输出）
+
 ## WASM 加载
 
 ### 1. `import.meta.url` in `new Function()` context is undefined
@@ -290,3 +352,55 @@ function normalizeFen(fen: string): string {
 useEffect(() => { fenRef.current = fen; }, [fen]);
 useEffect(() => { boardRef.current = board; }, [board]);
 ```
+
+## 新中式视觉重构 (2026-05-27)
+
+### 23. 全盘审美转向新中式动态书卷
+
+**症状**: 赛博黑客风（纯黑背景、霓虹/玻璃拟态、等宽代码字体、点阵图案）与中国象棋的传统人文气质严重冲突。
+
+**原因**: 前一阶段追求"Web3 × AI"的酷感，使用了大量深色玻璃、发光阴影、点阵图案、终端风格组件，完全抽离了象棋的东方美学底蕴。
+
+**解决**: 全盘推翻，彻底回归"新中式动态书卷"美学：
+- 背景 `#050505` → `#1a1410`（暖檀木色）
+- 移除 DotPattern 点阵背景组件
+- 移除所有 lucide-react 图标（Terminal/Swords/Crosshair/Volume2/VolumeX）
+- 移除所有霓虹发光、玻璃拟态、终端风格
+
+### 24. 竖排书法卷轴
+
+**解决**: 在页面左侧边缘添加竖排书法卷轴：
+- `writing-mode: vertical-rl` 竖排书写
+- 古诗自动慢速滚动（60s 循环），内容来自白居易《山僧对棋》、赵师秀《约客》、《橘中秘》、《梅花谱》
+- 朱砂红半透明（rgba(194,59,34,0.12)），KaiTi 楷体
+
+### 25. 棋子改为温润玉石风格
+
+**解决**: 
+- 圆形棋子体改为暖象牙白/木色径向渐变
+- 红方棋子文字使用朱砂红 (#c23b22)，黑方使用墨黑 (#1a1a1a)
+- 移除所有 box-shadow 发光、text-shadow 发光
+- 选中状态改为细朱砂红描边轮廓，无发光
+
+### 26. 侧边面板改为中式卷轴风格
+
+**解决**:
+- ControlPanel：暖木色背景，KaiTi 标签（对弈设置/模式/难度/声音）
+- AiCoach：卷轴式布局，朱砂红竖线装饰，KaiTi 字体，"求教"按钮朱砂红
+- FenInput：简化标签"局势输入"，无终端图标
+- SceneStrip：按钮使用 KaiTi 字体，"载入"前缀
+- StatsPanel：中文标签（局数/胜/负/和），"待改进"弱标题
+
+### 27. 文本可见度不足
+
+**原因**: 为追求低调优雅，将大量文字设在 10-25% 透明度，在暖木色背景上几乎不可见。
+
+**解决**: 系统提升所有文本透明度：
+- 主标题：70%（保留）
+- 副标题：15% → 30%
+- 面板标签：25% → 45%
+- 内容文字：20-25% → 35-45%
+- 按钮文字（未选中）：20% → 35%
+- AI 评语内容：55% → 75%
+- 页脚：10% → 25%
+- 书法卷轴：3.5% → 12%
