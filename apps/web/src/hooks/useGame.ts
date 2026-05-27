@@ -77,7 +77,7 @@ export function useGame() {
     if (!el) return;
     const obs = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
-      setBoardScale(Math.min(1, w / BASE_SVG_W));
+      setBoardScale(Math.min(1.8, w / BASE_SVG_W));
     });
     obs.observe(el);
     return () => obs.disconnect();

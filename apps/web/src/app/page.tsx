@@ -61,9 +61,9 @@ export default function Home() {
             <h1 className="text-base font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/92">
               灵弈
             </h1>
-            <p className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/72">AI × 中国象棋</p>
+            <p className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/72">AI × 中国象棋</p>
           </div>
-          <div className="flex items-center gap-2 text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/88">
+          <div className="flex items-center gap-2 text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/88">
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${game.status === 'ready' ? 'bg-[#c23b22]' : 'bg-red-400/60'}`}
               style={{ boxShadow: game.status === 'ready' ? '0 0 4px rgba(194,59,34,0.3)' : 'none' }} />
             <span>{game.status === 'ready' ? '就绪' : '异常'}</span>
@@ -126,7 +126,7 @@ export default function Home() {
         <SceneStrip scenes={SCENES} onSelect={game.analyzeFen} />
 
         {/* Footer */}
-        <div className="flex justify-between text-[8px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/70 tracking-wider px-1">
+        <div className="flex justify-between text-sm font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/70 tracking-wider px-1">
           <span>灵弈 v0.1.0</span>
           <span>引擎 {DIFFICULTIES[game.difficulty].depth} 层</span>
         </div>
@@ -151,20 +151,20 @@ function ControlPanel({
   onSpeechToggle: (v: boolean) => void;
 }) {
   return (
-    <div className="rounded-xl p-3 bg-[#3a2a22]/55 backdrop-blur-md border border-[#c9a84c]/10 space-y-2.5">
-      <span className="text-[9px] font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/82">
+    <div className="rounded-xl p-3 bg-[#2a1a10]/85 backdrop-blur-md border border-[#c9a84c]/25 space-y-2.5">
+      <span className="text-xs font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/82">
         对弈设置
       </span>
 
       <div className="flex items-center justify-between gap-1.5">
-        <span className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">模式</span>
+        <span className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">模式</span>
         <div className="flex">
           {(['pvp', 'pve'] as const).map((mode) => (
             <button key={mode} onClick={() => onModeChange(mode)}
-              className={`px-2 py-0.5 text-[10px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
+              className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
                 ${gameMode === mode
                   ? 'bg-[#c23b22]/10 text-[#c23b22]/60 border-[#c23b22]/25'
-                  : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/10 hover:border-[#c23b22]/15'
+                  : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/25 hover:border-[#c23b22]/15'
                 }`}>
               {mode === 'pvp' ? '双人对弈' : '人机对战'}
             </button>
@@ -174,15 +174,15 @@ function ControlPanel({
 
       {gameMode === 'pve' && (
         <div className="flex items-center justify-between gap-1.5">
-          <span className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">难度</span>
+          <span className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">难度</span>
           <div className="flex">
             {DIFFICULTIES.map((d, i) => (
               <button key={d.label} onClick={() => onDifficultyChange(i)}
-                className={`px-2 py-0.5 text-[10px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
+                className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
                   ${i < DIFFICULTIES.length - 1 ? 'border-r-0' : ''}
                   ${difficulty === i
                     ? 'bg-[#c23b22]/10 text-[#c23b22]/60 border-[#c23b22]/25'
-                    : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/10 hover:border-[#c23b22]/15'
+                    : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/25 hover:border-[#c23b22]/15'
                   }`}>
                 {d.label}
               </button>
@@ -192,16 +192,16 @@ function ControlPanel({
       )}
 
       <div className="flex items-center justify-between gap-1.5">
-        <span className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">声音</span>
+        <span className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">声音</span>
         <div className="flex gap-1">
           {[{ key: 'sound', label: '音效', on: soundOn, toggle: onSoundToggle },
             { key: 'speech', label: '语音', on: speechOn, toggle: onSpeechToggle },
           ].map(a => (
             <button key={a.key} onClick={() => a.toggle(!a.on)}
-              className={`px-2 py-0.5 text-[10px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
+              className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
                 ${a.on
                   ? 'bg-[#c23b22]/10 text-[#c23b22]/50 border-[#c23b22]/20'
-                  : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/10'
+                  : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/25'
                 }`}>
               {a.label}
             </button>
@@ -217,26 +217,26 @@ function StatsPanel({ stats, weaknesses }: {
   weaknesses: string[];
 }) {
   return (
-    <div className="rounded-xl p-3 bg-[#2a1e1b]/50 backdrop-blur-md border border-[#c9a84c]/8 space-y-2">
-      <span className="text-[9px] font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/82">
+    <div className="rounded-xl p-3 bg-[#2a1a10]/80 backdrop-blur-md border border-[#c9a84c]/22 space-y-2">
+      <span className="text-xs font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/82">
         棋局统计
       </span>
       <dl className="grid grid-cols-4 gap-1 text-center">
-        <div><dt className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">局数</dt>
+        <div><dt className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">局数</dt>
           <dd className="text-xs font-mono text-[#f0dfa8]/90">{stats.gamesPlayed}</dd></div>
-        <div><dt className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">胜</dt>
+        <div><dt className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">胜</dt>
           <dd className="text-xs font-mono text-[#f0dfa8]/90">{stats.wins}</dd></div>
-        <div><dt className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">负</dt>
+        <div><dt className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">负</dt>
           <dd className="text-xs font-mono text-[#f0dfa8]/90">{stats.losses}</dd></div>
-        <div><dt className="text-[9px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">和</dt>
+        <div><dt className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/78">和</dt>
           <dd className="text-xs font-mono text-[#f0dfa8]/90">{stats.draws}</dd></div>
       </dl>
       {weaknesses.length > 0 && (
-        <div className="pt-1.5 border-t border-[#c9a84c]/8">
-          <div className="text-[8px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/72 mb-0.5">待改进</div>
+        <div className="pt-1.5 border-t border-[#c9a84c]/22">
+          <div className="text-sm font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/72 mb-0.5">待改进</div>
           <ul className="space-y-0.5">
             {weaknesses.slice(0, 3).map((w, i) => (
-              <li key={i} className="text-[10px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/88">▸ {w}</li>
+              <li key={i} className="text-[13px] font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/88">▸ {w}</li>
             ))}
           </ul>
         </div>
@@ -247,16 +247,16 @@ function StatsPanel({ stats, weaknesses }: {
 
 function FenInput({ fen, onFenChange }: { fen: string; onFenChange: (v: string) => void }) {
   return (
-    <div className="rounded-xl bg-[#3a2a22]/45 border border-[#c9a84c]/10 overflow-hidden">
-      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-[#c9a84c]/6">
-        <span className="text-[9px] font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/78">
+    <div className="rounded-xl bg-[#2a1a10]/80 border border-[#c9a84c]/25 overflow-hidden">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-[#c9a84c]/20">
+        <span className="text-xs font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/78">
           局势输入
         </span>
       </div>
       <textarea
         value={fen}
         onChange={(e) => onFenChange(e.target.value)}
-        className="w-full bg-transparent text-[11px] font-mono text-[#f0dfa8]/78 px-3 py-2
+        className="w-full bg-transparent text-sm font-mono text-[#f0dfa8]/78 px-3 py-2
           placeholder:text-[#f0dfa8]/70 resize-none focus:outline-none leading-relaxed"
         rows={2}
         placeholder="在此粘贴 FEN 局势代码..."
@@ -270,8 +270,8 @@ function SceneStrip({ scenes, onSelect }: { scenes: typeof SCENES; onSelect: (v:
     <div className="flex gap-1.5 flex-wrap">
       {scenes.map((s) => (
         <button key={s.label} onClick={() => onSelect(s.fen)}
-          className="px-2.5 py-1 text-[10px] font-['KaiTi','STKaiti',serif] tracking-wider
-            bg-[#3a2a22]/40 border border-[#c9a84c]/10 text-[#f0dfa8]/82
+          className="px-2.5 py-1 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider
+            bg-[#3a2a22]/40 border border-[#c9a84c]/25 text-[#f0dfa8]/82
             hover:border-[#c23b22]/20 hover:text-[#f0dfa8]/82
             transition-all duration-150 active:scale-[0.97] rounded-md">
           载入 {s.label}
