@@ -163,7 +163,7 @@ function ControlPanel({
             <button key={mode} onClick={() => onModeChange(mode)}
               className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
                 ${gameMode === mode
-                  ? 'bg-[#c23b22]/10 text-[#c23b22]/60 border-[#c23b22]/25'
+                  ? 'bg-[#8a5a20]/40 text-[#f0dfa8]/95 border-[#c8a050]/60'
                   : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/25 hover:border-[#c23b22]/15'
                 }`}>
               {mode === 'pvp' ? '双人对弈' : '人机对战'}
@@ -181,7 +181,7 @@ function ControlPanel({
                 className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
                   ${i < DIFFICULTIES.length - 1 ? 'border-r-0' : ''}
                   ${difficulty === i
-                    ? 'bg-[#c23b22]/10 text-[#c23b22]/60 border-[#c23b22]/25'
+                    ? 'bg-[#8a5a20]/40 text-[#f0dfa8]/95 border-[#c8a050]/60'
                     : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/25 hover:border-[#c23b22]/15'
                   }`}>
                 {d.label}

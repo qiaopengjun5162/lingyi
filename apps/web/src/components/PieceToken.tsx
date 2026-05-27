@@ -1,13 +1,13 @@
 'use client';
 
 const PIECE_CHAR: Record<string, Record<string, string>> = {
-  King: { red: '帅', black: '将' },
+  King:    { red: '帅', black: '将' },
   Advisor: { red: '仕', black: '士' },
-  Bishop: { red: '相', black: '象' },
-  Rook: { red: '車', black: '車' },
-  Knight: { red: '馬', black: '馬' },
-  Cannon: { red: '炮', black: '炮' },
-  Pawn: { red: '兵', black: '卒' },
+  Bishop:  { red: '相', black: '象' },
+  Rook:    { red: '車', black: '車' },
+  Knight:  { red: '馬', black: '馬' },
+  Cannon:  { red: '炮', black: '炮' },
+  Pawn:    { red: '兵', black: '卒' },
 };
 
 export function PieceToken({
@@ -15,22 +15,17 @@ export function PieceToken({
 }: {
   piece_type: string; side: string; selected?: boolean; cell: number;
 }) {
-  const size = cell * 0.85;
+  const size = cell * 0.86;
   const isRed = side === 'red';
   const char = PIECE_CHAR[piece_type]?.[side] ?? '?';
 
-  const textColor = isRed ? '#c23b22' : '#1a0f00';
-  const bg = 'radial-gradient(circle at 35% 28%, #faf3e0 0%, #eddcb0 40%, #d8c08a 75%, #c4a870 100%)';
   const ringColor = selected
-    ? (isRed ? 'rgba(194,59,34,0.75)' : 'rgba(26,26,26,0.65)')
-    : 'rgba(70,38,10,0.72)';
-  const shadow = [
-    `0 0 0 2.5px ${ringColor}`,
-    '0 0 0 4.5px rgba(210,175,110,0.38)',
-    '0 4px 10px rgba(0,0,0,0.48)',
-    'inset 0 1.5px 4px rgba(255,255,255,0.7)',
-    'inset 0 -2px 3px rgba(0,0,0,0.18)',
-  ].join(',');
+    ? (isRed ? '#c23b22' : '#1a0a00')
+    : '#4a2808';
+
+  const shadow = selected
+    ? `0 0 0 2.5px ${ringColor}, 0 0 0 4.5px #d4b070, 0 0 0 6px ${ringColor}, 0 5px 14px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.2)`
+    : `0 0 0 2px #3a1e06, 0 0 0 4px #c8a050, 0 0 0 5.5px #3a1e06, 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(0,0,0,0.18)`;
 
   return (
     <div
@@ -38,20 +33,21 @@ export function PieceToken({
       style={{
         width: size, height: size,
         borderRadius: '50%',
-        background: bg,
-        border: '1.5px solid rgba(70,38,10,0.45)',
+        background: 'radial-gradient(circle at 35% 28%, #fdf6e4 0%, #f0e0b8 45%, #dcc888 80%, #c8b070 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: shadow,
         cursor: 'pointer',
         userSelect: 'none',
       }}>
       <span style={{
-        fontFamily: "'Noto Serif SC', 'KaiTi', 'STKaiti', serif",
-        fontSize: size * 0.54,
+        fontFamily: "'Noto Serif SC','KaiTi','STKaiti',serif",
+        fontSize: size * 0.52,
         fontWeight: 900,
         lineHeight: 1,
-        color: textColor,
-        textShadow: isRed ? '0 1px 2px rgba(120,20,10,0.25)' : '0 1px 2px rgba(0,0,0,0.28)',
+        color: isRed ? '#c23b22' : '#1a0a00',
+        textShadow: isRed
+          ? '0 1px 0 rgba(255,200,180,0.4)'
+          : '0 1px 0 rgba(255,220,150,0.3)',
       }}>
         {char}
       </span>
