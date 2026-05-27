@@ -1,5 +1,6 @@
 import { streamText } from 'ai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { anthropic } from '@ai-sdk/anthropic';
 
 export const maxDuration = 30;
 
@@ -48,27 +49,55 @@ function buildPrompt(ctx: CoachRequest): string {
 评语风格：犀利、一针见血、不说场面话。`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseContext(body: any): CoachRequest {
+  if (body.messages) {
+    const lastUserMsg = body.messages.filter((m: { role: string }) => m.role === 'user').pop();
+    const text = lastUserMsg?.parts?.[0]?.text ?? lastUserMsg?.content ?? '{}';
+    return JSON.parse(text);
+  }
+  return body;
+}
+
+function tryClaude(systemPrompt: string) {
+  return streamText({
+    model: anthropic('claude-sonnet-4-20250514'),
+    system: systemPrompt,
+    messages: [{ role: 'user', content: '请分析当前局面并给出评语。' }],
+  });
+}
+
+function tryDeepSeek(systemPrompt: string) {
+  return streamText({
+    model: deepseek('deepseek-chat'),
+    system: systemPrompt,
+    messages: [{ role: 'user', content: '请分析当前局面并给出评语。' }],
+    providerOptions: {
+      deepseek: {
+        thinking: { type: 'disabled' },
+      },
+    },
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    let context: CoachRequest;
-    if (body.messages) {
-      const lastUserMsg = body.messages.filter((m: { role: string }) => m.role === 'user').pop();
-      const text = lastUserMsg?.parts?.[0]?.text ?? lastUserMsg?.content ?? '{}';
-      context = JSON.parse(text);
-    } else {
-      context = body;
-    }
-
+    const context = parseContext(body);
     const systemPrompt = buildPrompt(context);
 
-    const result = streamText({
-      model: deepseek('deepseek-chat'),
-      system: systemPrompt,
-      messages: [{ role: 'user', content: '请分析当前局面并给出评语。' }],
-    });
+    // Primary: Claude（有 API key 时优先）
+    if (process.env.ANTHROPIC_API_KEY) {
+      try {
+        const result = tryClaude(systemPrompt);
+        return result.toUIMessageStreamResponse();
+      } catch (e) {
+        console.warn('Claude 调用失败，切换到 DeepSeek:', e);
+      }
+    }
 
+    // Fallback: DeepSeek
+    const result = tryDeepSeek(systemPrompt);
     return result.toUIMessageStreamResponse();
   } catch (e) {
     return Response.json(

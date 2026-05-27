@@ -417,3 +417,25 @@ useEffect(() => { boardRef.current = board; }, [board]);
 - 主渐变从暖褐（#5a3c30）渐变到深褐（#1a1410）
 - 8 个浮动光尘粒子，CSS keyframe 动画随机漂浮（16-30s 周期）
 - 书法卷轴透明度从 12% 提升到 15%
+
+## 模型主备切换 (2026-05-27)
+
+### 29. 实现 Claude primary + DeepSeek fallback 模型切换
+
+**症状**: 使用 DeepSeek 作为 AI 教练时，API 报 400 错误 `The content[].thinking in the thinking mode must be passed back to the API`。
+
+**原因**: Claude 的 thinking block 内容被传给了 DeepSeek API，但 DeepSeek 不接受 `thinking` 字段（除非显式启用 thinking 模式）。
+
+**解决**:
+- 引入 `@ai-sdk/anthropic`，Claude (`claude-sonnet-4-20250514`) 作为 primary 模型
+- `@ai-sdk/openai-compatible` 的 DeepSeek 作为 fallback
+- DeepSeek 调用时显式设置 `thinking: { type: 'disabled' }` 防止 400 错误
+- Claude 调用失败时自动降级到 DeepSeek
+- 无 `ANTHROPIC_API_KEY` 时直接走 DeepSeek
+
+**文件**: `apps/web/src/app/api/coach/route.ts`
+
+**配置文件**:
+- `apps/web/.env.local` — 新增 `ANTHROPIC_API_KEY`
+
+**状态**: 代码已合并，Anthropic key 格式为 `fe_oa_*`（第一版 key），API 返回 403 "Request not allowed"，需要有效 key 才能启用 Claude primary。
