@@ -19,7 +19,10 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy
-      - run: cargo test -p lingyi-core
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - run: cargo nextest run -p lingyi-core
       - run: cargo clippy -p lingyi-core -- -D warnings
       - run: cargo build -p lingyi-core --features wasm
 
@@ -54,11 +57,17 @@ jobs:
         with:
           name: wasm
           path: apps/web/public/wasm/
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: apps/web/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install
+        working-directory: apps/web
+      - run: pnpm lint
+        working-directory: apps/web
+      - run: pnpm build
+        working-directory: apps/web

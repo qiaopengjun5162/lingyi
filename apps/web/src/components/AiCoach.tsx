@@ -32,7 +32,7 @@ export function AiCoach({ fen, score, gameMode, moveCount }: AiCoachProps) {
   };
 
   return (
-    <div className="rounded-xl bg-[#2a1e1b]/70 backdrop-blur-md border border-[#c9a84c]/10 overflow-hidden">
+    <div className="rounded-xl bg-[#3a2a22]/55 backdrop-blur-md border border-[#c9a84c]/10 overflow-hidden">
       {/* 卷轴 header */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-[#c9a84c]/8">
         <div className="w-1 h-4 bg-[#c23b22]/50 rounded-full" />

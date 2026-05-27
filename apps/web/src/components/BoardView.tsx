@@ -59,7 +59,7 @@ export function BoardView({
         <Card
           className="border-[#c9a84c]/8"
           style={{
-            background: 'linear-gradient(180deg, rgba(42,30,25,0.55), rgba(32,22,18,0.6))',
+            background: 'linear-gradient(180deg, rgba(58,42,32,0.55), rgba(42,30,25,0.6))',
             backdropFilter: 'blur(10px)',
             WebkitBackdropFilter: 'blur(10px)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',

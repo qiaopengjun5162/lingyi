@@ -149,4 +149,47 @@ mod tests {
         let moves = legal_moves(&board, side);
         assert!(!moves.is_empty());
     }
+
+    #[test]
+    fn test_red_cannon_horizontal() {
+        let fen = "2bakabnr/3r5/2n6/2p3p1p/p1P1C4/1C7/P3P1c1P/6N2/9/R1BK1ABR1 w";
+        let (board, side) = parse_fen(fen).unwrap();
+        assert_eq!(side, Side::Red);
+
+        let rk = find_king(&board, Side::Red).unwrap();
+        let bk = find_king(&board, Side::Black).unwrap();
+        assert_ne!(rk.1, bk.1, "红帅 col={}, 黑将 col={}", rk.1, bk.1);
+
+        let moves = legal_moves(&board, side);
+
+        // 炮(5,1)横向 — 只能走到 col=3（用炮挡住黑车），走不到 col=4（黑车沿第3列直下将军）
+        let h: Vec<&Move> = moves.iter()
+            .filter(|m| m.from_row == 5 && m.from_col == 1 && m.to_row == 5)
+            .collect();
+        assert!(!h.is_empty(), "炮(5,1)应有横向走法，实际: {}", h.len());
+        let cols: Vec<_> = h.iter().map(|m| m.to_col).collect();
+        eprintln!("炮(5,1)横向可达列: {:?}", cols);
+        // 黑车在 (1,3)，炮走到 (5,4) 时第3列全空→将军，故 col=4 不合法
+        assert!(!h.iter().any(|m| m.to_col == 4),
+            "炮走到 col=4 时黑车(1,3)沿第3列直下将军，应被拦截");
+        assert!(h.iter().any(|m| m.to_col == 3),
+            "炮应能走到 col=3 挡住黑车");
+    }
+
+    #[test]
+    fn test_cannon_flying_general() {
+        let fen = "4k4/9/9/9/9/4C4/9/9/9/4K4 w";
+        let (board, side) = parse_fen(fen).unwrap();
+        let moves = legal_moves(&board, side);
+
+        let v: Vec<&Move> = moves.iter()
+            .filter(|m| m.from_row == 5 && m.from_col == 4 && m.to_col == 4)
+            .collect();
+        assert!(!v.is_empty(), "同列炮应能纵向移动");
+
+        let h: Vec<&Move> = moves.iter()
+            .filter(|m| m.from_row == 5 && m.from_col == 4 && m.to_row == 5 && m.to_col != 4)
+            .collect();
+        assert!(h.is_empty(), "同列炮不应能横向离开中路: {:?}", h);
+    }
 }

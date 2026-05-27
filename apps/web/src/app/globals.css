@@ -126,6 +126,22 @@
   animation: scroll-calligraphy 60s linear infinite;
 }
 
+@keyframes float-dust {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  5% { opacity: 0.6; }
+  25% { opacity: 0.2; }
+  50% { transform: translateY(-40px) translateX(15px); opacity: 0.3; }
+  75% { opacity: 0.1; }
+  90% { opacity: 0.4; }
+}
+
+@keyframes float-dust-2 {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.5; }
+  40% { transform: translateY(-25px) translateX(-10px); opacity: 0.15; }
+  70% { opacity: 0.35; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

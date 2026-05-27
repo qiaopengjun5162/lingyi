@@ -1,21 +1,21 @@
 # 灵弈 (LingYi) — 一键本地开发 / 验证
 
 # ─── 完整检查（提交前跑这个就够了） ───
-check: test clippy lint build
+check: clippy test lint build
 
 # ─── Rust ───
 @test:
-    cargo test -p lingyi-core
+    cargo nextest run -p lingyi-core
 
 @clippy:
     cargo clippy -p lingyi-core -- -D warnings
 
 # ─── 前端 ───
 @lint: clippy
-    cd apps/web && npx eslint src/
+    cd apps/web && pnpm lint
 
 @build: wasm
-    cd apps/web && npx next build
+    cd apps/web && pnpm build
 
 # ─── WASM ───
 wasm:
@@ -37,7 +37,7 @@ wasm:
 
 # ─── 自动修复 ───
 @fix: clippy
-    cd apps/web && npx eslint src/ --fix
+    cd apps/web && pnpm lint --fix
 
 # ─── 帮助 ───
 @default:

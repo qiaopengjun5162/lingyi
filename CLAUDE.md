@@ -189,11 +189,18 @@ evaluate(fen: string) → number
 - README: [README.md](./README.md)（英文）/ [README_CN.md](./README_CN.md)（中文）
 - 贡献指南：[CONTRIBUTING.md](./CONTRIBUTING.md)
 - CI/CD: [.github/workflows/ci.yml](./.github/workflows/ci.yml)
-- 开发日志：[DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md)（记录了 19 个已解决问题）
+- 开发日志：[DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md)（记录了 26 个已解决问题）
 
 ## 运行方式
 
 ```bash
+# 依赖管理（2026-05-26 起使用 pnpm）
+cd apps/web && pnpm install
+cd apps/web && pnpm approve-builds  # 首次需要 approve sharp/msw 构建脚本
+
+# Rust 测试
+cargo nextest run -p lingyi-core   # 更快、更清晰的测试输出
+
 # AI 教练 CLI 测试
 export DEEPSEEK_API_KEY=sk-xxx
 cargo run -p lingyi-agent
@@ -202,13 +209,17 @@ cargo run -p lingyi-agent
 wasm-pack build crates/lingyi-core --target web -- --features wasm
 
 # 前端开发 (Next.js 16)
-cd apps/web && npm run dev
+cd apps/web && pnpm dev
 
-# 前端构建验证
-cd apps/web && npx next build
+# 前端构建验证 + lint
+cd apps/web && pnpm build
+cd apps/web && pnpm lint
 
 # E2E 测试（需先启动 dev server）
 node apps/web/e2e/board-interactive.spec.mjs
+
+# 一键提交前检查
+just check
 
 # WASM 重新编译后更新前端
 cp crates/lingyi-core/pkg/lingyi_core_bg.wasm apps/web/public/wasm/
