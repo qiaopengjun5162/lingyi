@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import { BASE_SVG_W, BASE_SVG_H, ix, iy } from '@/lib/board-constants';
 
-const WARM_LINE = 'rgba(180,130,80,0.35)';
-const WARM_TEXT = 'rgba(180,130,80,0.25)';
+const WARM_LINE = 'rgba(90,50,15,0.72)';
+const WARM_TEXT = 'rgba(80,45,10,0.55)';
 
 export function GridSVG({ cell, margin }: { cell: number; margin: number }) {
   const M = margin, C = cell;
@@ -33,9 +33,19 @@ export function GridSVG({ cell, margin }: { cell: number; margin: number }) {
     <svg viewBox={`0 0 ${BASE_SVG_W} ${BASE_SVG_H}`}
       className="absolute top-0 left-0 pointer-events-none select-none"
       width="100%" height="100%">
-      {/* Board base */}
-      <rect width={BASE_SVG_W} height={BASE_SVG_H} rx={2}
-        fill="rgba(42,30,25,0.65)" stroke={WARM_LINE} strokeWidth={0.6} />
+      <defs>
+        <linearGradient id="boardWood" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#d4a868" />
+          <stop offset="40%" stopColor="#c89850" />
+          <stop offset="100%" stopColor="#b88040" />
+        </linearGradient>
+        <filter id="boardShadow">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(0,0,0,0.4)" />
+        </filter>
+      </defs>
+      {/* Board base — 枫木色 */}
+      <rect width={BASE_SVG_W} height={BASE_SVG_H} rx={4}
+        fill="url(#boardWood)" stroke="rgba(80,45,10,0.5)" strokeWidth={1} filter="url(#boardShadow)" />
 
       {/* Outer border */}
       <rect x={M - 2} y={M - 2} width={8 * C + 4} height={9 * C + 4}
@@ -57,15 +67,15 @@ export function GridSVG({ cell, margin }: { cell: number; margin: number }) {
           stroke={WARM_LINE} strokeWidth={0.5} />
       ))}
 
-      {/* 楚河汉界 — 行书水印 */}
+      {/* 楚河汉界 */}
       <text x={ix(2,C,M)} y={iy(4.5,C,M)} fill={WARM_TEXT} fontSize={16}
         fontFamily="'KaiTi', 'STKaiti', 'Noto Serif SC', serif"
-        textAnchor="middle" dominantBaseline="central" letterSpacing={10} opacity={0.6}>
+        textAnchor="middle" dominantBaseline="central" letterSpacing={10} opacity={0.85}>
         楚 河
       </text>
       <text x={ix(6,C,M)} y={iy(4.5,C,M)} fill={WARM_TEXT} fontSize={16}
         fontFamily="'KaiTi', 'STKaiti', 'Noto Serif SC', serif"
-        textAnchor="middle" dominantBaseline="central" letterSpacing={10} opacity={0.6}>
+        textAnchor="middle" dominantBaseline="central" letterSpacing={10} opacity={0.85}>
         汉 界
       </text>
 

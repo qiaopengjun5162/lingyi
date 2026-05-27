@@ -57,12 +57,10 @@ export function BoardView({
         margin: '0 auto',
       }}>
         <Card
-          className="border-[#c9a84c]/8"
+          className="border-[#8a5520]/40"
           style={{
-            background: 'linear-gradient(180deg, rgba(58,42,32,0.55), rgba(42,30,25,0.6))',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            background: 'linear-gradient(160deg, #7a5535 0%, #5c3e28 50%, #4a3020 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,210,130,0.1)',
           }}>
           <CardContent className="p-2.5">
             <div className="flex flex-col items-center gap-1.5">
