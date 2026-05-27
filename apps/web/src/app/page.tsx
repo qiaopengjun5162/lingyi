@@ -200,8 +200,8 @@ function ControlPanel({
             <button key={a.key} onClick={() => a.toggle(!a.on)}
               className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
                 ${a.on
-                  ? 'bg-[#c23b22]/10 text-[#c23b22]/50 border-[#c23b22]/20'
-                  : 'bg-transparent text-[#f0dfa8]/78 border-[#c9a84c]/25'
+                  ? 'bg-[#c8a050]/30 text-[#f0dfa8] border-[#c8a050]/70 font-bold'
+                  : 'bg-transparent text-[#f0dfa8]/65 border-[#c8a050]/30 hover:border-[#c8a050]/60'
                 }`}>
               {a.label}
             </button>

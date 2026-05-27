@@ -32,10 +32,10 @@ export function AiCoach({ fen, score, gameMode, moveCount }: AiCoachProps) {
   };
 
   return (
-    <div className="rounded-xl bg-[#3a2a22]/55 backdrop-blur-md border border-[#c9a84c]/10 overflow-hidden">
+    <div className="rounded-xl bg-[#1e1208]/80 backdrop-blur-md border border-[#c8a050]/30 overflow-hidden">
       {/* 卷轴 header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#c9a84c]/8">
-        <div className="w-1 h-4 bg-[#c23b22]/50 rounded-full" />
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#c8a050]/25">
+        <div className="w-1 h-4 bg-[#c8a050]/60 rounded-full" />
         <span className="text-[11px] font-['KaiTi','STKaiti','Noto_Serif_SC',serif] tracking-wider text-[#c9a84c]/70">
           灵弈教练 · 评语
         </span>
@@ -50,7 +50,7 @@ export function AiCoach({ fen, score, gameMode, moveCount }: AiCoachProps) {
 
         {isPending && (
           <div className="flex items-start gap-2">
-            <div className="w-1 h-6 bg-[#c23b22]/40 rounded-full mt-0.5 shrink-0 animate-pulse" />
+            <div className="w-1 h-6 bg-[#c8a050]/50 rounded-full mt-0.5 shrink-0 animate-pulse" />
             <div className="text-[11px] font-['KaiTi','STKaiti',serif] leading-relaxed text-[#c9a84c]/60">
               教练思索中...
             </div>
@@ -74,11 +74,11 @@ export function AiCoach({ fen, score, gameMode, moveCount }: AiCoachProps) {
       </div>
 
       {/* 卷轴 footer */}
-      <div className="px-3 py-2 border-t border-[#c9a84c]/8">
+      <div className="px-3 py-2 border-t border-[#c8a050]/25">
         <button onClick={handleAnalyze} disabled={isPending}
           className="w-full py-1.5 text-[11px] font-['KaiTi','STKaiti',serif] tracking-wider
-            bg-[#c23b22]/10 border border-[#c23b22]/20 text-[#c23b22]/60
-            hover:bg-[#c23b22]/15 hover:text-[#c23b22]/80
+            bg-[#c8a050]/25 border border-[#c8a050]/50 text-[#f0dfa8]/90
+            hover:bg-[#c8a050]/35 hover:text-[#f0dfa8]
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-all duration-150 active:scale-[0.98] rounded">
           {isPending ? '评语生成中...' : hasComment ? '重新求教' : '求教'}
