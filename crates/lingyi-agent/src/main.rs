@@ -19,10 +19,10 @@
 //! 3. 组合 system prompt（角色设定）+ user prompt（局面分析）发送给 DeepSeek
 //! 4. 打印 AI 教练的评语
 
-use lingyi_protocol::examples;
-use lingyi_protocol::types::AnalysisContext;
 use lingyi_agent::api::ApiClient;
 use lingyi_agent::prompt;
+use lingyi_protocol::examples;
+use lingyi_protocol::types::AnalysisContext;
 
 /// 系统提示词（角色设定），独立于具体局面。
 const SYSTEM_PROMPT: &str = r#"你是一位资深的中国象棋教练，风格严厉、一针见血。

@@ -96,7 +96,10 @@ impl std::fmt::Display for ApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ApiError::MissingApiKey => {
-                write!(f, "环境变量 DEEPSEEK_API_KEY 未设置。运行前请 export DEEPSEEK_API_KEY=sk-xxx")
+                write!(
+                    f,
+                    "环境变量 DEEPSEEK_API_KEY 未设置。运行前请 export DEEPSEEK_API_KEY=sk-xxx"
+                )
             }
             ApiError::RequestError(msg) => write!(f, "HTTP 请求失败: {}", msg),
             ApiError::ApiError { status, body } => {
@@ -143,8 +146,7 @@ impl ApiClient {
     /// 从环境变量 `DEEPSEEK_API_KEY` 读取 API Key，若未设置则返回
     /// [`ApiError::MissingApiKey`]。
     pub fn new() -> Result<Self, ApiError> {
-        let api_key = std::env::var("DEEPSEEK_API_KEY")
-            .map_err(|_| ApiError::MissingApiKey)?;
+        let api_key = std::env::var("DEEPSEEK_API_KEY").map_err(|_| ApiError::MissingApiKey)?;
 
         Ok(Self {
             api_key,
@@ -157,10 +159,7 @@ impl ApiClient {
     ///
     /// `messages` 是一个 (role, content) 元组向量，
     /// role 可以是 "system"、"user" 或 "assistant"。
-    pub async fn chat(
-        &self,
-        messages: Vec<(String, String)>,
-    ) -> Result<String, ApiError> {
+    pub async fn chat(&self, messages: Vec<(String, String)>) -> Result<String, ApiError> {
         let req_body = ChatCompletionRequest {
             model: "deepseek-chat".into(),
             messages: messages

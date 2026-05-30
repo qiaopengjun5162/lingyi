@@ -23,9 +23,21 @@ pub fn losing_trap_context() -> AnalysisContext {
                 depth: 18,
             },
             top_moves: vec![
-                TopMove { move_str: "车一平二".into(), score: -1.5, depth: 18 },
-                TopMove { move_str: "仕四进五".into(), score: -2.0, depth: 16 },
-                TopMove { move_str: "相七进五".into(), score: -2.3, depth: 16 },
+                TopMove {
+                    move_str: "车一平二".into(),
+                    score: -1.5,
+                    depth: 18,
+                },
+                TopMove {
+                    move_str: "仕四进五".into(),
+                    score: -2.0,
+                    depth: 16,
+                },
+                TopMove {
+                    move_str: "相七进五".into(),
+                    score: -2.3,
+                    depth: 16,
+                },
             ],
             game_phase: GamePhase::Middlegame,
             flags: vec!["子力落后".into(), "对方车炮压制".into()],
@@ -67,8 +79,16 @@ pub fn winning_position_context() -> AnalysisContext {
                 depth: 20,
             },
             top_moves: vec![
-                TopMove { move_str: "车六进六".into(), score: 3.0, depth: 20 },
-                TopMove { move_str: "车一平四".into(), score: 2.5, depth: 18 },
+                TopMove {
+                    move_str: "车六进六".into(),
+                    score: 3.0,
+                    depth: 20,
+                },
+                TopMove {
+                    move_str: "车一平四".into(),
+                    score: 2.5,
+                    depth: 18,
+                },
             ],
             game_phase: GamePhase::Endgame,
             flags: vec!["子力优势".into(), "双车".into()],
@@ -91,19 +111,27 @@ pub fn brilliant_move_context() -> AnalysisContext {
     AnalysisContext {
         game_state: GameState {
             fen: "3k1ab2/4a4/4b4/9/2R6/9/9/3R5/4K4/9 w".into(),
-            move_history: vec![
-                "车八进五".into(),
-                "士5退4".into(),
-                "车四进三".into(),
-            ],
+            move_history: vec!["车八进五".into(), "士5退4".into(), "车四进三".into()],
             game_type: GameType::ChineseChess,
             side_to_move: Side::Red,
         },
         engine: EngineAnalysis {
-            best_move: TopMove { move_str: "车四进一".into(), score: 8.0, depth: 22 },
+            best_move: TopMove {
+                move_str: "车四进一".into(),
+                score: 8.0,
+                depth: 22,
+            },
             top_moves: vec![
-                TopMove { move_str: "车四进一".into(), score: 8.0, depth: 22 },
-                TopMove { move_str: "车八平六".into(), score: 1.2, depth: 18 },
+                TopMove {
+                    move_str: "车四进一".into(),
+                    score: 8.0,
+                    depth: 22,
+                },
+                TopMove {
+                    move_str: "车八平六".into(),
+                    score: 1.2,
+                    depth: 18,
+                },
             ],
             game_phase: GamePhase::Endgame,
             flags: vec!["绝杀".into(), "弃车".into()],
@@ -117,7 +145,10 @@ pub fn brilliant_move_context() -> AnalysisContext {
         coaching_style: CoachingStyle::Strict,
         focus_area: Some(FocusArea::Tactics),
         current_evaluation: "红方弃车绝杀，胜势已成".into(),
-        key_moments: vec!["红方第3步车四进三是精妙的弃车引离".into(), "黑将已无路可逃".into()],
+        key_moments: vec![
+            "红方第3步车四进三是精妙的弃车引离".into(),
+            "黑将已无路可逃".into(),
+        ],
     }
 }
 
@@ -140,10 +171,22 @@ pub fn classic_blunder_context() -> AnalysisContext {
             side_to_move: Side::Red,
         },
         engine: EngineAnalysis {
-            best_move: TopMove { move_str: "马六进七".into(), score: -3.0, depth: 16 },
+            best_move: TopMove {
+                move_str: "马六进七".into(),
+                score: -3.0,
+                depth: 16,
+            },
             top_moves: vec![
-                TopMove { move_str: "马六进七".into(), score: -3.0, depth: 16 },
-                TopMove { move_str: "车九进一".into(), score: -0.5, depth: 14 },
+                TopMove {
+                    move_str: "马六进七".into(),
+                    score: -3.0,
+                    depth: 16,
+                },
+                TopMove {
+                    move_str: "车九进一".into(),
+                    score: -0.5,
+                    depth: 14,
+                },
             ],
             game_phase: GamePhase::Opening,
             flags: vec!["丢子".into(), "随手棋".into()],
@@ -157,7 +200,10 @@ pub fn classic_blunder_context() -> AnalysisContext {
         coaching_style: CoachingStyle::Strict,
         focus_area: Some(FocusArea::Opening),
         current_evaluation: "红方开局随手跳马丢车，局面被动".into(),
-        key_moments: vec!["红方第7步马七进六被黑炮串打车马".into(), "中兵已失守".into()],
+        key_moments: vec![
+            "红方第7步马七进六被黑炮串打车马".into(),
+            "中兵已失守".into(),
+        ],
     }
 }
 
@@ -203,8 +249,14 @@ mod tests {
             sub: AgentId("did:agent:lingyi-coach-v1".into()),
             controller: "did:key:z6MkhaXgB".into(),
             capabilities: vec![
-                Capability { action: "evaluate_position".into(), resource: "fen:*".into() },
-                Capability { action: "generate_commentary".into(), resource: "analysis:*".into() },
+                Capability {
+                    action: "evaluate_position".into(),
+                    resource: "fen:*".into(),
+                },
+                Capability {
+                    action: "generate_commentary".into(),
+                    resource: "analysis:*".into(),
+                },
             ],
             endpoint: Some("https://api.lingyi.ai/agent/coach-v1".into()),
             provenance: Some("ipfs://QmX...".into()),

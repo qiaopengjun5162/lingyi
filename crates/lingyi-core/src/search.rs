@@ -28,25 +28,29 @@ fn victim_value(pt: PieceType) -> f64 {
 /// 走法排序：吃子走法优先（MVV-LVA: 先吃价值高的子，先用价值低的子吃）
 fn order_moves(moves: &mut [Move], board: &BoardArray) {
     moves.sort_by(|a, b| {
-        let a_victim = board[a.to_row][a.to_col].map(|p| victim_value(p.piece_type)).unwrap_or(0.0);
-        let b_victim = board[b.to_row][b.to_col].map(|p| victim_value(p.piece_type)).unwrap_or(0.0);
-        let a_attacker = board[a.from_row][a.from_col].map(|p| victim_value(p.piece_type)).unwrap_or(0.0);
-        let b_attacker = board[b.from_row][b.from_col].map(|p| victim_value(p.piece_type)).unwrap_or(0.0);
+        let a_victim = board[a.to_row][a.to_col]
+            .map(|p| victim_value(p.piece_type))
+            .unwrap_or(0.0);
+        let b_victim = board[b.to_row][b.to_col]
+            .map(|p| victim_value(p.piece_type))
+            .unwrap_or(0.0);
+        let a_attacker = board[a.from_row][a.from_col]
+            .map(|p| victim_value(p.piece_type))
+            .unwrap_or(0.0);
+        let b_attacker = board[b.from_row][b.from_col]
+            .map(|p| victim_value(p.piece_type))
+            .unwrap_or(0.0);
         let a_score = a_victim * 10.0 - a_attacker;
         let b_score = b_victim * 10.0 - b_attacker;
-        b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
+        b_score
+            .partial_cmp(&a_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 }
 
 /// Negamax 递归搜索（带 Alpha-Beta 剪枝）
 /// 返回当前走棋方的局面评分（正数 = 当前方优势）。
-fn negamax(
-    board: &BoardArray,
-    side: Side,
-    depth: u32,
-    mut alpha: f64,
-    beta: f64,
-) -> f64 {
+fn negamax(board: &BoardArray, side: Side, depth: u32, mut alpha: f64, beta: f64) -> f64 {
     if depth == 0 {
         let score = game::evaluate_board(board);
         return match side {
@@ -95,7 +99,13 @@ pub fn best_move(board: &BoardArray, side: Side, depth: u32) -> Option<Move> {
 
     for m in &moves {
         let new_board = game::make_move(board, m);
-        let score = -negamax(&new_board, side.opponent(), depth - 1, f64::NEG_INFINITY, f64::INFINITY);
+        let score = -negamax(
+            &new_board,
+            side.opponent(),
+            depth - 1,
+            f64::NEG_INFINITY,
+            f64::INFINITY,
+        );
         if score > best_score {
             best_score = score;
             best_move = *m;
@@ -135,7 +145,11 @@ mod tests {
         // 深度 0 时应等于纯子力评估（约 0）
         let (board, _) = parse_fen(START_FEN).unwrap();
         let score = negamax(&board, Side::Red, 0, f64::NEG_INFINITY, f64::INFINITY);
-        assert!(score.abs() < 1.0, "深度 0 时开局评估应接近 0，实际为 {}", score);
+        assert!(
+            score.abs() < 1.0,
+            "深度 0 时开局评估应接近 0，实际为 {}",
+            score
+        );
     }
 
     #[test]

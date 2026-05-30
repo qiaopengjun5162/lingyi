@@ -151,7 +151,12 @@ fn try_make_move(
     to_col: u8,
 ) -> Result<String, String> {
     let (board, side) = parse_fen(fen).ok_or_else(|| "Invalid FEN".to_string())?;
-    let m = Move::new(from_row as usize, from_col as usize, to_row as usize, to_col as usize);
+    let m = Move::new(
+        from_row as usize,
+        from_col as usize,
+        to_row as usize,
+        to_col as usize,
+    );
 
     let legal = game::legal_moves(&board, side);
     if !legal.contains(&m) {
@@ -216,7 +221,8 @@ fn try_best_move(fen: &str, depth: u32) -> Result<String, String> {
         "from_col": m.from_col,
         "to_row": m.to_row,
         "to_col": m.to_col,
-    })).map_err(|e| format!("Serialize error: {}", e))
+    }))
+    .map_err(|e| format!("Serialize error: {}", e))
 }
 
 #[cfg(test)]
@@ -255,7 +261,10 @@ mod tests {
     #[test]
     fn test_evaluate_zero_at_start() {
         let score = evaluate(START_FEN);
-        assert!((score).abs() < 1.0, "Start position should be roughly equal");
+        assert!(
+            (score).abs() < 1.0,
+            "Start position should be roughly equal"
+        );
     }
 
     #[test]

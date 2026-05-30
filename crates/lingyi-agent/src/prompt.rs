@@ -56,19 +56,23 @@ pub fn build_prompt(ctx: &AnalysisContext) -> String {
         )
     };
 
-    let focus_note = ctx.focus_area.as_ref().map(|f| {
-        format!(
-            "\n重点关注：{}",
-            match f {
-                FocusArea::Opening => "开局阶段的分析",
-                FocusArea::Middlegame => "中局战术与计算",
-                FocusArea::Endgame => "残局攻防技巧",
-                FocusArea::Tactics => "战术组合",
-                FocusArea::Positional => "局面判断与子力调配",
-                FocusArea::Psychology => "心态与决策心理",
-            }
-        )
-    }).unwrap_or_default();
+    let focus_note = ctx
+        .focus_area
+        .as_ref()
+        .map(|f| {
+            format!(
+                "\n重点关注：{}",
+                match f {
+                    FocusArea::Opening => "开局阶段的分析",
+                    FocusArea::Middlegame => "中局战术与计算",
+                    FocusArea::Endgame => "残局攻防技巧",
+                    FocusArea::Tactics => "战术组合",
+                    FocusArea::Positional => "局面判断与子力调配",
+                    FocusArea::Psychology => "心态与决策心理",
+                }
+            )
+        })
+        .unwrap_or_default();
 
     format!(
         r#"{persona_prompt}

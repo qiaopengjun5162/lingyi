@@ -16,7 +16,12 @@ pub struct Move {
 
 impl Move {
     pub fn new(from_row: usize, from_col: usize, to_row: usize, to_col: usize) -> Self {
-        Self { from_row, from_col, to_row, to_col }
+        Self {
+            from_row,
+            from_col,
+            to_row,
+            to_col,
+        }
     }
 }
 

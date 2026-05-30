@@ -20,8 +20,12 @@ pub fn find_king(board: &BoardArray, side: Side) -> Option<(usize, usize)> {
 
 /// 检查将帅对面规则：两将在同一列且中间无子，视为将军。
 pub fn kings_facing(board: &BoardArray) -> bool {
-    let Some((r1, c1)) = find_king(board, Side::Red) else { return false };
-    let Some((r2, c2)) = find_king(board, Side::Black) else { return false };
+    let Some((r1, c1)) = find_king(board, Side::Red) else {
+        return false;
+    };
+    let Some((r2, c2)) = find_king(board, Side::Black) else {
+        return false;
+    };
     if c1 != c2 {
         return false;
     }
@@ -117,7 +121,8 @@ mod tests {
 
     #[test]
     fn test_start_not_check() {
-        let (board, _) = parse_fen("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w").unwrap();
+        let (board, _) =
+            parse_fen("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w").unwrap();
         assert!(!in_check(&board, Side::Red));
         assert!(!in_check(&board, Side::Black));
     }
@@ -133,7 +138,8 @@ mod tests {
 
     #[test]
     fn test_make_move() {
-        let (board, _) = parse_fen("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w").unwrap();
+        let (board, _) =
+            parse_fen("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w").unwrap();
         // Red cannon at (7, 1) moves horizontally to (7, 4)
         let from = (7, 1);
         let m = Move::new(from.0, from.1, 7, 4);
@@ -145,7 +151,8 @@ mod tests {
 
     #[test]
     fn test_start_has_legal_moves() {
-        let (board, side) = parse_fen("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w").unwrap();
+        let (board, side) =
+            parse_fen("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w").unwrap();
         let moves = legal_moves(&board, side);
         assert!(!moves.is_empty());
     }
@@ -163,17 +170,19 @@ mod tests {
         let moves = legal_moves(&board, side);
 
         // 炮(5,1)横向 — 只能走到 col=3（用炮挡住黑车），走不到 col=4（黑车沿第3列直下将军）
-        let h: Vec<&Move> = moves.iter()
+        let h: Vec<&Move> = moves
+            .iter()
             .filter(|m| m.from_row == 5 && m.from_col == 1 && m.to_row == 5)
             .collect();
         assert!(!h.is_empty(), "炮(5,1)应有横向走法，实际: {}", h.len());
         let cols: Vec<_> = h.iter().map(|m| m.to_col).collect();
         eprintln!("炮(5,1)横向可达列: {:?}", cols);
         // 黑车在 (1,3)，炮走到 (5,4) 时第3列全空→将军，故 col=4 不合法
-        assert!(!h.iter().any(|m| m.to_col == 4),
-            "炮走到 col=4 时黑车(1,3)沿第3列直下将军，应被拦截");
-        assert!(h.iter().any(|m| m.to_col == 3),
-            "炮应能走到 col=3 挡住黑车");
+        assert!(
+            !h.iter().any(|m| m.to_col == 4),
+            "炮走到 col=4 时黑车(1,3)沿第3列直下将军，应被拦截"
+        );
+        assert!(h.iter().any(|m| m.to_col == 3), "炮应能走到 col=3 挡住黑车");
     }
 
     #[test]
@@ -182,12 +191,14 @@ mod tests {
         let (board, side) = parse_fen(fen).unwrap();
         let moves = legal_moves(&board, side);
 
-        let v: Vec<&Move> = moves.iter()
+        let v: Vec<&Move> = moves
+            .iter()
             .filter(|m| m.from_row == 5 && m.from_col == 4 && m.to_col == 4)
             .collect();
         assert!(!v.is_empty(), "同列炮应能纵向移动");
 
-        let h: Vec<&Move> = moves.iter()
+        let h: Vec<&Move> = moves
+            .iter()
             .filter(|m| m.from_row == 5 && m.from_col == 4 && m.to_row == 5 && m.to_col != 4)
             .collect();
         assert!(h.is_empty(), "同列炮不应能横向离开中路: {:?}", h);
