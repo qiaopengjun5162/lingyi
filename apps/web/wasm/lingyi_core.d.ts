@@ -1,5 +1,5 @@
 /* tslint:disable */
-/* eslint-disable */
+ 
 
 /**
  * 简易子力评估（正数 = 红方优势）。

@@ -11,9 +11,9 @@ const PIECE_CHAR: Record<string, Record<string, string>> = {
 };
 
 export function PieceToken({
-  piece_type, side, selected, cell,
+  piece_type, side, selected, isLastMoved, cell,
 }: {
-  piece_type: string; side: string; selected?: boolean; cell: number;
+  piece_type: string; side: string; selected?: boolean; isLastMoved?: boolean; cell: number;
 }) {
   const size = cell * 0.86;
   const isRed = side === 'red';
@@ -24,8 +24,10 @@ export function PieceToken({
     : '#4a2808';
 
   const shadow = selected
-    ? `0 0 0 2.5px ${ringColor}, 0 0 0 4.5px #d4b070, 0 0 0 6px ${ringColor}, 0 5px 14px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.2)`
-    : `0 0 0 2px #3a1e06, 0 0 0 4px #c8a050, 0 0 0 5.5px #3a1e06, 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(0,0,0,0.18)`;
+    ? `0 0 0 3px ${ringColor}, 0 0 0 5px #d4b070, 0 5px 14px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.2)`
+    : isLastMoved
+    ? `0 0 0 3.5px #ffd060, 0 0 20px rgba(255,200,50,0.65), 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(0,0,0,0.18)`
+    : `0 0 0 3px rgba(200,160,70,0.7), 0 4px 10px rgba(0,0,0,0.45), inset 0 2px 4px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(0,0,0,0.18)`;
 
   return (
     <div
