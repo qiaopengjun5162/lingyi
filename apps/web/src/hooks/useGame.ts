@@ -11,7 +11,7 @@ import {
 import { moveToNotation } from '@/lib/notation';
 import {
   playMove, playCapture, playCheck, playCheckmate, playStalemate,
-  speakNotation,
+  speakNotation, speakAlert,
   setSoundEnabled, setSpeechEnabled,
 } from '@/lib/sound';
 import { lookup } from '@/lib/opening-book';
@@ -36,6 +36,7 @@ export function useGame() {
   // ─── Interaction state ───
   const [selected, setSelected] = useState<{ row: number; col: number } | null>(null);
   const [lastMoveDesc, setLastMoveDesc] = useState<string | null>(null);
+  const [lastMove, setLastMove] = useState<{ fromRow: number; fromCol: number; toRow: number; toCol: number } | null>(null);
   const [wrongSideMsg, setWrongSideMsg] = useState<string | null>(null);
   const wrongSideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -57,6 +58,27 @@ export function useGame() {
   // ─── Board scale ───
   const boardScaleRef = useRef<HTMLDivElement>(null);
   const [boardScale, setBoardScale] = useState(1);
+
+  // ─── Score history for advantage chart ───
+  const [scoreHistory, setScoreHistory] = useState<number[]>([0]);
+
+  // ─── Timer ───
+  const TIME_OPTS = [
+    { label: '3分', s: 180 },
+    { label: '5分', s: 300 },
+    { label: '10分', s: 600 },
+  ] as const;
+  const [timerEnabled, setTimerEnabled] = useState(false);
+  const [timeControl, setTimeControl] = useState(1);
+  const [redTime, setRedTime] = useState(300);
+  const [blackTime, setBlackTime] = useState(300);
+  const [timedOut, setTimedOut] = useState<'red' | 'black' | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const timedOutRef = useRef<'red' | 'black' | null>(null);
+
+  // ─── Three-fold repetition detection ───
+  const fenHistoryRef = useRef<string[]>([]);
+  const [repetitionDraw, setRepetitionDraw] = useState(false);
 
   // ─── Emotion (score-based mood bubble) ───
   const [emotion, setEmotion] = useState<{ type: 'blunder' | 'brilliant'; diff: number } | null>(null);
@@ -83,6 +105,56 @@ export function useGame() {
     return () => obs.disconnect();
   }, []);
 
+  // Keep timedOut ref in sync
+  useEffect(() => { timedOutRef.current = timedOut; }, [timedOut]);
+
+  // Reset times when time control changes (intentional setState in effect for user-triggered reset)
+   
+  useEffect(() => {
+    const newTime = TIME_OPTS[timeControl].s;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRedTime(newTime);
+     
+    setBlackTime(newTime);
+    setTimedOut(null);
+    timedOutRef.current = null;
+  }, [timeControl]);
+
+  // Timer countdown — reads refs to avoid stale closure
+  useEffect(() => {
+    clearInterval(timerRef.current);
+    if (!timerEnabled) return;
+    timerRef.current = setInterval(() => {
+      if (timedOutRef.current || boardRef.current?.checkmate || boardRef.current?.stalemate) {
+        clearInterval(timerRef.current);
+        return;
+      }
+      if (boardRef.current?.side_to_move === 'red') {
+        setRedTime(t => Math.max(0, t - 1));
+      } else {
+        setBlackTime(t => Math.max(0, t - 1));
+      }
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [timerEnabled]);
+
+  // Timeout detection
+  useEffect(() => {
+    if (!timerEnabled || timedOutRef.current || redTime > 0) return;
+    setTimedOut('red');
+    timedOutRef.current = 'red';
+    speakAlert('红方超时，黑方胜');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [redTime]);
+
+  useEffect(() => {
+    if (!timerEnabled || timedOutRef.current || blackTime > 0) return;
+    setTimedOut('black');
+    timedOutRef.current = 'black';
+    speakAlert('黑方超时，红方胜');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blackTime]);
+
   // ─── analyzeFen — uses only refs and set* (stable), no deps ───
   const analyzeFen = useCallback((f: string) => {
     setFen(f);
@@ -107,6 +179,7 @@ export function useGame() {
       }
       lastScoreRef.current = newScore;
       setScore(newScore);
+      setScoreHistory(prev => [...prev.slice(-299), newScore]);
 
       if (currentGameRef.current && (b.checkmate || b.stalemate)) {
         const result: GameRecord['result'] = b.checkmate
@@ -117,10 +190,16 @@ export function useGame() {
         setCurrentGame(null);
         setAiStats(calculateStats());
         setWeaknesses(summarizeWeaknesses());
-        if (b.checkmate) playCheckmate();
-        else playStalemate();
+        if (b.checkmate) {
+          playCheckmate();
+          speakAlert(b.side_to_move === 'red' ? '将杀，黑方胜' : '将杀，红方胜');
+        } else {
+          playStalemate();
+          speakAlert('困毙，和棋');
+        }
       } else if (b.check) {
         playCheck();
+        speakAlert('将军');
       }
     } catch (e: unknown) {
       setError(String(e));
@@ -171,12 +250,18 @@ export function useGame() {
       }
 
       const newFen = wasmMakeMove(f, fromRow, fromCol, toRow, toCol);
+      fenHistoryRef.current.push(newFen);
+      if (fenHistoryRef.current.filter(h => h === newFen).length >= 3) {
+        setRepetitionDraw(true);
+        speakAlert('三次重复，和棋');
+      }
       const piece = b.rows[fromRow]?.[fromCol];
       const notation = piece
         ? moveToNotation(fromRow, fromCol, toRow, toCol, piece.piece_type, 'black')
         : `黑方 ${fromRow},${fromCol}→${toRow},${toCol}`;
 
       setLastMoveDesc(`黑方：${notation}`);
+      setLastMove({ fromRow, fromCol, toRow, toCol });
       playMove();
       if (speechOn) speakNotation(notation);
       setAiThinking(false);
@@ -236,10 +321,16 @@ export function useGame() {
         const sideLabel = p?.side === 'red' ? '红方' : '黑方';
 
         const newFen = wasmMakeMove(fen, sel.row, sel.col, row, col);
+        fenHistoryRef.current.push(newFen);
+        if (fenHistoryRef.current.filter(f => f === newFen).length >= 3) {
+          setRepetitionDraw(true);
+          speakAlert('三次重复，和棋');
+        }
         const captured = board.rows[row]?.[col];
         if (captured) playCapture();
         else playMove();
         setLastMoveDesc(`${sideLabel}：${notation}`);
+        setLastMove({ fromRow: sel.row, fromCol: sel.col, toRow: row, toCol: col });
         if (speechOn) speakNotation(notation);
 
         pendingScoreRef.current = lastScoreRef.current;
@@ -285,20 +376,39 @@ export function useGame() {
   }, [board, status, moveTargets, fen, selected, analyzeFen,
       aiThinking, gameMode, difficulty, score, speechOn]);
 
-  const isGameOver = !!(board?.checkmate || board?.stalemate);
+  const resetGame = useCallback(() => {
+    setLastMove(null);
+    setLastMoveDesc(null);
+    setScoreHistory([0]);
+    setRepetitionDraw(false);
+    setTimedOut(null);
+    timedOutRef.current = null;
+    fenHistoryRef.current = [];
+    const secs = TIME_OPTS[timeControl].s;
+    setRedTime(secs);
+    setBlackTime(secs);
+    currentGameRef.current = null;
+    setCurrentGame(null);
+    analyzeFen(START_FEN);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analyzeFen, timeControl]);
+
+  const isGameOver = !!(board?.checkmate || board?.stalemate || timedOut !== null || repetitionDraw);
 
   return {
     fen, board, status, error,
     selected, moveTargets, moveCount, score,
-    lastMoveDesc, wrongSideMsg,
-    isGameOver,
+    lastMoveDesc, lastMove, wrongSideMsg,
+    isGameOver, timedOut, repetitionDraw,
     gameMode, difficulty, aiThinking, aiStats,
     soundOn, speechOn,
     currentGame, weaknesses,
     emotion,
-    boardScaleRef, boardScale,
-    analyzeFen, handleCellClick, setEmotion,
+    boardScaleRef, boardScale, scoreHistory,
+    timerEnabled, timeControl, redTime, blackTime, TIME_OPTS,
+    analyzeFen, handleCellClick, setEmotion, resetGame,
     setGameMode, setDifficulty, setSoundOn, setSpeechOn,
+    setTimerEnabled, setTimeControl,
     DIFFICULTIES,
   };
 }

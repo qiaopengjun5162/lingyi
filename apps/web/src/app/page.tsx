@@ -80,6 +80,7 @@ export default function Home() {
                 board={game.board}
                 selected={game.selected}
                 moveTargets={game.moveTargets}
+                lastMove={game.lastMove}
                 boardScale={game.boardScale}
                 boardScaleRef={game.boardScaleRef}
                 aiThinking={game.aiThinking}
@@ -87,9 +88,15 @@ export default function Home() {
                 moveCount={game.moveCount}
                 score={game.score}
                 isGameOver={game.isGameOver}
+                timedOut={game.timedOut}
+                repetitionDraw={game.repetitionDraw}
+                timerEnabled={game.timerEnabled}
+                redTime={game.redTime}
+                blackTime={game.blackTime}
                 mood={game.emotion}
                 onMoodDismiss={() => game.setEmotion(null)}
                 onCellClick={game.handleCellClick}
+                onRestart={game.resetGame}
               />
             )}
           </div>
@@ -101,11 +108,17 @@ export default function Home() {
               difficulty={game.difficulty}
               soundOn={game.soundOn}
               speechOn={game.speechOn}
+              timerEnabled={game.timerEnabled}
+              timeControl={game.timeControl}
+              TIME_OPTS={game.TIME_OPTS}
               onModeChange={game.setGameMode}
               onDifficultyChange={game.setDifficulty}
               onSoundToggle={game.setSoundOn}
               onSpeechToggle={game.setSpeechOn}
+              onTimerToggle={game.setTimerEnabled}
+              onTimeControlChange={game.setTimeControl}
             />
+            <ScoreChart history={game.scoreHistory} />
             <AiCoach
               fen={game.fen}
               score={game.score}
@@ -140,15 +153,21 @@ export default function Home() {
 
 function ControlPanel({
   gameMode, difficulty, soundOn, speechOn,
+  timerEnabled, timeControl, TIME_OPTS,
   onModeChange, onDifficultyChange,
   onSoundToggle, onSpeechToggle,
+  onTimerToggle, onTimeControlChange,
 }: {
   gameMode: GameMode; difficulty: number;
   soundOn: boolean; speechOn: boolean;
+  timerEnabled: boolean; timeControl: number;
+  TIME_OPTS: readonly { label: string; s: number }[];
   onModeChange: (m: GameMode) => void;
   onDifficultyChange: (d: number) => void;
   onSoundToggle: (v: boolean) => void;
   onSpeechToggle: (v: boolean) => void;
+  onTimerToggle: (v: boolean) => void;
+  onTimeControlChange: (i: number) => void;
 }) {
   return (
     <div className="rounded-xl p-3 bg-[#2a1a10]/85 backdrop-blur-md border border-[#c9a84c]/25 space-y-2.5">
@@ -190,6 +209,24 @@ function ControlPanel({
           </div>
         </div>
       )}
+
+      <div className="flex items-center justify-between gap-1.5">
+        <span className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">计时</span>
+        <div className="flex gap-1">
+          <button onClick={() => onTimerToggle(!timerEnabled)}
+            className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
+              ${timerEnabled ? 'bg-[#c8a050]/30 text-[#f0dfa8] border-[#c8a050]/70 font-bold' : 'bg-transparent text-[#f0dfa8]/65 border-[#c8a050]/30'}`}>
+            {timerEnabled ? '开' : '关'}
+          </button>
+          {timerEnabled && TIME_OPTS.map((t, i) => (
+            <button key={t.label} onClick={() => onTimeControlChange(i)}
+              className={`px-2 py-0.5 text-[13px] font-['KaiTi','STKaiti',serif] tracking-wider transition-all duration-150 border
+                ${timeControl === i ? 'bg-[#8a5a20]/40 text-[#f0dfa8]/95 border-[#c8a050]/60' : 'bg-transparent text-[#f0dfa8]/65 border-[#c9a84c]/25'}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex items-center justify-between gap-1.5">
         <span className="text-xs font-['KaiTi','STKaiti',serif] text-[#f0dfa8]/85">声音</span>
@@ -261,6 +298,40 @@ function FenInput({ fen, onFenChange }: { fen: string; onFenChange: (v: string) 
         rows={2}
         placeholder="在此粘贴 FEN 局势代码..."
       />
+    </div>
+  );
+}
+
+function ScoreChart({ history }: { history: number[] }) {
+  if (history.length < 2) return null;
+  const W = 240, H = 76, pad = 10;
+  const iW = W - pad * 2, iH = H - pad * 2 - 4;
+  const mid = pad + iH / 2 + 2;
+  const peak = Math.max(600, ...history.map(Math.abs));
+  const toX = (i: number) => pad + (i / (history.length - 1)) * iW;
+  const toY = (s: number) => mid - (s / peak) * (iH / 2);
+  const pts = history.map((s, i) => `${toX(i)},${toY(s)}`).join(' ');
+  const fill = [`${toX(0)},${mid}`, ...history.map((s, i) => `${toX(i)},${toY(s)}`), `${toX(history.length - 1)},${mid}`].join(' ');
+  const last = history[history.length - 1];
+  const red = last >= 0;
+  return (
+    <div className="rounded-xl px-3 pt-2.5 pb-2 bg-[#2a1a10]/85 backdrop-blur-md border border-[#c9a84c]/25">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs font-['KaiTi','STKaiti',serif] tracking-wider text-[#f0dfa8]/82">局势曲线</span>
+        <span className={`text-xs font-mono font-bold ${red ? 'text-[#c23b22]' : 'text-[#7099cc]'}`}>
+          {last > 0 ? '+' : ''}{last.toFixed(0)}
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
+        <line x1={pad} y1={mid} x2={pad + iW} y2={mid}
+          stroke="rgba(201,168,76,0.3)" strokeWidth={0.6} strokeDasharray="4,3" />
+        <polygon points={fill} fill={red ? 'rgba(194,59,34,0.18)' : 'rgba(100,160,220,0.15)'} />
+        <polyline points={pts} fill="none"
+          stroke={red ? '#c23b22' : '#7099cc'} strokeWidth={1.5}
+          strokeLinejoin="round" strokeLinecap="round" />
+        <circle cx={toX(history.length - 1)} cy={toY(last)} r={3}
+          fill={red ? '#c23b22' : '#7099cc'} />
+      </svg>
     </div>
   );
 }
