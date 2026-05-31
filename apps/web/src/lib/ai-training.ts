@@ -53,7 +53,7 @@ function loadData(): TrainingData {
 function saveData(data: TrainingData): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (e) {
+  } catch {
     console.warn('AI training: localStorage full, clearing old games');
     data.games = data.games.slice(-50);
     try {
