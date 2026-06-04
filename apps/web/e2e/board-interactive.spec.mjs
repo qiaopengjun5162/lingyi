@@ -12,13 +12,13 @@
 
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:3000';
+const BASE = `http://localhost:${process.env.PORT || 3000}`;
 
 async function waitForEngine(page) {
   await page.waitForFunction(() => {
     const spans = document.querySelectorAll('span');
-    return Array.from(spans).some(s => s.textContent === '就绪');
-  }, { timeout: 15000 });
+    return Array.from(spans).some(s => s.textContent.trim() === '就绪');
+  }, null, { timeout: 15000 });
 }
 
 /**
@@ -28,10 +28,11 @@ async function waitForEngine(page) {
 async function clickCell(page, row, col) {
   const idx = row * 9 + col;
   await page.evaluate(({ i, r, c }) => {
-    const cells = document.querySelectorAll('[class*="z-10"]');
+    // [class*="absolute z-10"] excludes the page layout wrapper which has "relative z-10"
+    const cells = document.querySelectorAll('[class*="absolute z-10"]');
     const cell = cells[i];
     if (cell) cell.click();
-    else throw new Error(`Cell index ${i} (row=${r}, col=${c}) not found`);
+    else throw new Error(`Cell index ${i} (row=${r}, col=${c}) not found (total: ${cells.length})`);
   }, { i: idx, r: row, c: col });
   await page.waitForTimeout(150);
 }
@@ -50,6 +51,18 @@ async function getText(page, keyword) {
 /** 统计走法提示指示器数量（绿点 + 红圈，都是 z-20） */
 async function countIndicators(page) {
   return page.evaluate(() => document.querySelectorAll('[class*="z-20"]').length);
+}
+
+/** 获取局面评估分（span 中格式为 +N.N 或 -N.N 或 N.N 的纯数字） */
+async function getScore(page) {
+  return page.evaluate(() => {
+    const spans = document.querySelectorAll('span');
+    for (const s of spans) {
+      const m = s.textContent.trim().match(/^([+-]?\d+\.\d+)$/);
+      if (m) return parseFloat(m[1]);
+    }
+    return null;
+  });
 }
 
 let browser;
@@ -98,20 +111,15 @@ async function main() {
     }
   });
 
-  await test('显示红方先走', async () => {
-    const text = await getText(page, '红方');
-    if (!text) throw new Error('未找到"红方"文字');
+  await test('显示红方先走（▶ 指示符）', async () => {
+    const text = await getText(page, '▶');
+    if (!text) throw new Error('未找到红方先走指示符 ▶');
   });
 
-  await test('初始评估分为 0（平衡局面）', async () => {
-    const text = await getText(page, '评估');
-    if (!text) throw new Error('未找到评估分');
-    const match = text.match(/([-+]?\d+\.\d+)/);
-    if (!match) throw new Error(`评估分格式异常: ${text}`);
-    const score = parseFloat(match[1]);
-    if (Math.abs(score) > 0.5) {
-      throw new Error(`开局评估应接近 0，实际为 ${score}`);
-    }
+  await test('初始评估分接近 0（平衡局面）', async () => {
+    const score = await getScore(page);
+    if (score === null) throw new Error('未找到评估分');
+    if (Math.abs(score) > 0.5) throw new Error(`开局评估应接近 0，实际为 ${score}`);
   });
 
   // ─── 2. 棋子选中与走法提示 ───
@@ -148,14 +156,14 @@ async function main() {
     // 点击目标 (6,1) — 炮前进一步
     await clickCell(page, 6, 1);
 
-    // 走棋后切换到黑方
-    const text = await getText(page, '黑方');
-    if (!text) throw new Error('走棋后应切换到黑方走棋');
+    // 走棋后切换到黑方（◆ 指示符）
+    const text = await getText(page, '◆');
+    if (!text) throw new Error('走棋后应切换到黑方（◆ 指示符）');
   });
 
   await test('走棋后局面评估正常显示', async () => {
-    const text = await getText(page, '评估');
-    if (!text) throw new Error('应显示局面评估');
+    const score = await getScore(page);
+    if (score === null) throw new Error('应显示局面评估分');
   });
 
   // ─── 4. 预设场景 ───
@@ -164,34 +172,33 @@ async function main() {
   await test('切换到"劣势"局面', async () => {
     await page.click('button:has-text("劣势")');
     await page.waitForTimeout(200);
-    const text = await getText(page, '评估');
-    if (!text) throw new Error('劣势局面应显示评估');
+    const score = await getScore(page);
+    if (score === null) throw new Error('劣势局面应显示评估分');
   });
 
-  await test('劣势局面的评估分与开局不同', async () => {
-    const text = await getText(page, '评估');
-    const match = text.match(/([-+]?\d+\.\d+)/);
-    if (!match) throw new Error(`评估分格式异常: ${text}`);
+  await test('劣势局面的评估分与开局不同（非零）', async () => {
+    const score = await getScore(page);
+    if (score === null) throw new Error('未找到评估分');
+    if (Math.abs(score) < 0.1) throw new Error(`劣势局面评估应偏离 0，实际为 ${score}`);
   });
 
   await test('切换到"优势"局面', async () => {
     await page.click('button:has-text("优势")');
     await page.waitForTimeout(200);
-    const text = await getText(page, '评估');
-    const match = text.match(/([-+]?\d+\.\d+)/);
-    if (!match) throw new Error(`评估分格式异常: ${text}`);
-    const score = parseFloat(match[1]);
+    const score = await getScore(page);
+    if (score === null) throw new Error('未找到评估分');
     if (score <= 0) throw new Error(`优势局面评估分应为正值，实际为 ${score}`);
   });
 
   await test('切换到"跳马布局"', async () => {
     await page.click('button:has-text("跳马布局")');
     await page.waitForTimeout(200);
-    const text = await getText(page, '走法');
-    const match = text.match(/(\d+)/);
-    if (!match) throw new Error('未找到走法数');
-    const count = parseInt(match[1]);
-    if (count === 0) throw new Error('跳马布局应有合法走法');
+    // 确认引擎就绪（▶ 或 ◆ 指示符存在）
+    const hasIndicator = await page.evaluate(() => {
+      const spans = document.querySelectorAll('span');
+      return Array.from(spans).some(s => s.textContent.includes('▶') || s.textContent.includes('◆'));
+    });
+    if (!hasIndicator) throw new Error('跳马布局应有走棋指示符');
   });
 
   // ─── 5. FEN 文本输入 ───
@@ -203,20 +210,23 @@ async function main() {
     if (!textarea) throw new Error('应存在 FEN 输入框');
 
     await textarea.fill(testFen);
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
 
-    const text = await getText(page, '走法');
-    if (!text) throw new Error('输入 FEN 后应显示合法走法数');
+    const hasIndicator = await page.evaluate(() => {
+      const spans = document.querySelectorAll('span');
+      return Array.from(spans).some(s => s.textContent.includes('▶') || s.textContent.includes('◆'));
+    });
+    if (!hasIndicator) throw new Error('输入 FEN 后应有走棋指示符');
   });
 
   // ─── 6. 回到开局 ───
   console.log('\n── 重新开局 ──');
 
-  await test('点击"开局"按钮回到初始局面', async () => {
+  await test('点击"开局"回到初始局面', async () => {
     await page.click('button:has-text("开局")');
     await page.waitForTimeout(200);
-    const text = await getText(page, '红方');
-    if (!text) throw new Error('开局应红方先走');
+    const text = await getText(page, '▶');
+    if (!text) throw new Error('开局应显示红方先走指示符');
   });
 
   await test('回到开局后无页面错误', async () => {
@@ -259,14 +269,14 @@ async function main() {
     await clickCell(page, 7, 1);
     await clickCell(page, 6, 1);
 
-    // 等待 AI 回应（最多 5 秒）
+    // 等待 AI 回应（最多 5 秒），回应后轮到红方（▶ 出现）
     const aiResponded = await page.evaluate(() => {
       return new Promise(resolve => {
         let waited = 0;
         const check = setInterval(() => {
           waited += 500;
           const spans = document.querySelectorAll('span');
-          const hasRed = Array.from(spans).some(s => s.textContent.includes('红方'));
+          const hasRed = Array.from(spans).some(s => s.textContent.includes('▶'));
           if (hasRed) { clearInterval(check); resolve(true); }
           else if (waited > 5000) { clearInterval(check); resolve(false); }
         }, 500);

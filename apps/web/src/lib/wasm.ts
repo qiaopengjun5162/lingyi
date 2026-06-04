@@ -29,6 +29,12 @@ async function loadWasmModule(): Promise<void> {
   code = code.replace(/^export function /gm, 'function ');
   code = code.replace(/^export \{.*?\};/gm, '');
 
+  // import.meta is a syntax error in new Function() non-module scope; patch the default WASM path
+  code = code.replace(
+    /new URL\(['"]lingyi_core_bg\.wasm['"],\s*import\.meta\.url\)/g,
+    "'/wasm/lingyi_core_bg.wasm'"
+  );
+
   // Expose functions on global namespace for access after Function() returns
   code += '\nself.__lingyiWasmApi = { evaluate, fen_to_json, get_legal_moves, is_check, is_checkmate, is_stalemate, make_move, best_move, __wbg_init };';
 

@@ -215,8 +215,11 @@ cd apps/web && pnpm dev
 cd apps/web && pnpm build
 cd apps/web && pnpm lint
 
-# E2E 测试（需先启动 dev server）
-node apps/web/e2e/board-interactive.spec.mjs
+# E2E 测试（需先启动 dev server，PORT 默认 3000）
+PORT=3000 node apps/web/e2e/board-interactive.spec.mjs
+# 端口被占时指定高位端口（dev server 和 E2E 脚本必须用同一 PORT）
+cd apps/web && PORT=8000 pnpm dev   # 先启动
+PORT=8000 node apps/web/e2e/board-interactive.spec.mjs
 
 # 一键提交前检查
 just check
@@ -228,19 +231,35 @@ cp crates/lingyi-core/pkg/lingyi_core.d.ts apps/web/public/wasm/```
 
 ## WASM 加载说明
 
-前端 `wasm.ts` 通过 patch `import.meta.url` 加载 WASM：
+前端 `wasm.ts` 通过 `new Function(code)()` 全局执行 wasm-pack 生成的 JS，绕过 Turbopack 对 `import()` 的拦截。
+
+**已知陷阱：** wasm-pack 生成的 `lingyi_core.js` 包含 `import.meta.url`（用于默认 WASM 路径）。在 `new Function()` 非模块作用域中，`import.meta` 是语法错误（SyntaxError），导致引擎完全无法初始化，页面永远停留在"灵弈启动中..."。
+
+**修复**（`src/lib/wasm.ts`的 `loadWasmModule` 函数）：在执行前替换该表达式：
+```javascript
+code = code.replace(
+  /new URL\(['"]lingyi_core_bg\.wasm['"],\s*import\.meta\.url\)/g,
+  "'/wasm/lingyi_core_bg.wasm'"
+);
 ```
-new URL('wasm', import.meta.url) → '/wasm/lingyi_core_bg.wasm'
-```
-`new Function()` 作用域中 `import.meta.url` 未定义，需替换为静态路径。
+
+每次重新编译 WASM（`wasm-pack build`）并更新 `public/wasm/lingyi_core.js` 后，**必须确认此替换仍然有效**（grep `import.meta` 检查）。
 
 ## E2E 测试
 
-`apps/web/e2e/board-interactive.spec.mjs` — 20 个测试用例：
-1. WASM 引擎初始化（加载就绪、无页面错误、显示红方先走、评估分 0）
+`apps/web/e2e/board-interactive.spec.mjs` — 20 个测试用例（20/20 通过，2026-06-04 验证）：
+1. WASM 引擎初始化（加载就绪、无页面错误、显示红方先走 ▶、评估分 0）
 2. 选中与走法提示（点棋子显示提示、点另一棋子重选、点空位取消）
-3. 走棋执行（走棋后切换走棋方、评估正常）
+3. 走棋执行（走棋后切换走棋方 ◆、评估正常）
 4. 预设场景（切换到劣势/优势/跳马布局）
 5. FEN 文本输入（输入自定义 FEN 更新棋盘）
 6. 重新开局（回到初始局面）
 7. AI 人机模式（模式切换、难度选择、AI 自动回应、切回双人）
+
+**E2E 选择器约定：**
+- 引擎就绪：`span` 文本 === `'就绪'`
+- 走棋方指示：`▶`（红方）/ `◆`（黑方）——不依赖 "红方"/"黑方" 静态标签（仅计时开启时显示）
+- 评估分：`span` 中格式为 `[-+]?\d+\.\d+` 的纯数字（无 "评估" 前缀）
+- 棋盘格子：`[class*="absolute z-10"]`——注意页面布局 div 也有 `relative z-10`，不能用 `[class*="z-10"]`
+- 场景按钮：`button:has-text("劣势")` 等（Playwright 部分匹配，实际按钮文字为 "载入 劣势"）
+- 走法提示：`[class*="z-20"]`
